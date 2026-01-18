@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const ical = require('node-ical');
+const stripe = require('stripe')('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');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -256,6 +257,52 @@ app.get('/', (req, res) => {
         </body>
         </html>
     `);
+});
+
+// ===========================
+// API ENDPOINT - CREATE PAYMENT INTENT (STRIPE)
+// ===========================
+app.post('/api/create-payment-intent', async (req, res) => {
+    try {
+        const { amount, currency, bookingData } = req.body;
+        
+        console.log('💳 Creazione Payment Intent Stripe...');
+        console.log('Importo:', amount / 100, currency.toUpperCase());
+        
+        // Crea il Payment Intent
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: currency,
+            automatic_payment_methods: {
+                enabled: true,
+            },
+            metadata: {
+                checkIn: bookingData.checkIn,
+                checkOut: bookingData.checkOut,
+                guestName: `${bookingData.firstName} ${bookingData.lastName}`,
+                email: bookingData.email,
+                phone: bookingData.phone,
+                nights: bookingData.nights,
+                adults: bookingData.adults,
+                children: bookingData.children
+            },
+            description: `Prenotazione La Perla Nera - ${bookingData.firstName} ${bookingData.lastName} - ${bookingData.checkIn}`
+        });
+        
+        console.log('✅ Payment Intent creato:', paymentIntent.id);
+        
+        res.json({
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id
+        });
+        
+    } catch (error) {
+        console.error('❌ Errore creazione Payment Intent:', error.message);
+        res.status(500).json({
+            error: 'Errore nella creazione del pagamento',
+            details: error.message
+        });
+    }
 });
 
 // ===========================
