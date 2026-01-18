@@ -1,7 +1,7 @@
 {
-  "name": "la-perla-nera-booking",
+  "name": "casa-vacanza-booking",
   "version": "1.0.0",
-  "description": "Sistema di prenotazione con sincronizzazione calendario Airbnb",
+  "description": "Sistema di prenotazione con sincronizzazione calendario Airbnb e pagamenti Stripe",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,7 +12,9 @@
     "booking",
     "calendar",
     "ical",
-    "vacation-rental"
+    "vacation-rental",
+    "stripe",
+    "payments"
   ],
   "author": "",
   "license": "ISC",
@@ -20,7 +22,8 @@
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "node-fetch": "^2.6.7",
-    "node-ical": "^0.15.3"
+    "node-ical": "^0.15.3",
+    "stripe": "^14.10.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
