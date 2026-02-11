@@ -2,18 +2,29 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const ical = require('node-ical');
-const stripe = require('stripe')('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');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const nodemailer = require('nodemailer');
 // ===========================
 // MIDDLEWARE
 // ===========================
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public')); // Metti tutti i tuoi file HTML/CSS/JS in una cartella "public"
-
+// Email Configuration
+const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 // ===========================
 // CONFIGURAZIONE AIRBNB
 // ===========================
@@ -24,6 +35,74 @@ let cachedBookedDates = [];
 let lastSyncTime = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minuti in millisecondi
 
+// CREATE PAYMENT INTENT
+app.post('/api/create-payment-intent', async (req, res) => {
+    try {
+        const { amount, bookingData } = req.body;
+        
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100),
+            currency: 'eur',
+            automatic_payment_methods: { enabled: true },
+            metadata: {
+                firstName: bookingData.firstName,
+                lastName: bookingData.lastName,
+                email: bookingData.email
+            }
+        });
+
+        res.json({
+            success: true,
+            clientSecret: paymentIntent.client_secret
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// CONFIRM BOOKING
+app.post('/api/confirm-booking', async (req, res) => {
+    try {
+        const booking = req.body;
+        booking.bookingId = `LPN${Date.now()}`;
+        
+        // Invia email cliente
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM,
+            to: booking.email,
+            subject: `✅ Prenotazione Confermata - ${booking.bookingId}`,
+            html: `
+                <h1>Prenotazione Confermata!</h1>
+                <p>Codice: <strong>${booking.bookingId}</strong></p>
+                <p>Check-in: ${booking.checkIn}</p>
+                <p>Check-out: ${booking.checkOut}</p>
+                <p>Totale pagato: €${booking.total}</p>
+            `
+        });
+        
+        // Invia email admin
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM,
+            to: process.env.ADMIN_EMAIL,
+            subject: `🏡 Nuova Prenotazione - ${booking.firstName} ${booking.lastName}`,
+            html: `
+                <h2>Nuova Prenotazione</h2>
+                <p>Cliente: ${booking.firstName} ${booking.lastName}</p>
+                <p>Email: ${booking.email}</p>
+                <p>Totale: €${booking.total}</p>
+            `
+        });
+        
+        res.json({ success: true, bookingId: booking.bookingId });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// STRIPE CONFIG
+app.get('/api/stripe-config', (req, res) => {
+    res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
+});
 // ===========================
 // API ENDPOINT - SYNC CALENDAR
 // ===========================
@@ -257,52 +336,6 @@ app.get('/', (req, res) => {
         </body>
         </html>
     `);
-});
-
-// ===========================
-// API ENDPOINT - CREATE PAYMENT INTENT (STRIPE)
-// ===========================
-app.post('/api/create-payment-intent', async (req, res) => {
-    try {
-        const { amount, currency, bookingData } = req.body;
-        
-        console.log('💳 Creazione Payment Intent Stripe...');
-        console.log('Importo:', amount / 100, currency.toUpperCase());
-        
-        // Crea il Payment Intent
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: amount,
-            currency: currency,
-            automatic_payment_methods: {
-                enabled: true,
-            },
-            metadata: {
-                checkIn: bookingData.checkIn,
-                checkOut: bookingData.checkOut,
-                guestName: `${bookingData.firstName} ${bookingData.lastName}`,
-                email: bookingData.email,
-                phone: bookingData.phone,
-                nights: bookingData.nights,
-                adults: bookingData.adults,
-                children: bookingData.children
-            },
-            description: `Prenotazione La Perla Nera - ${bookingData.firstName} ${bookingData.lastName} - ${bookingData.checkIn}`
-        });
-        
-        console.log('✅ Payment Intent creato:', paymentIntent.id);
-        
-        res.json({
-            clientSecret: paymentIntent.client_secret,
-            paymentIntentId: paymentIntent.id
-        });
-        
-    } catch (error) {
-        console.error('❌ Errore creazione Payment Intent:', error.message);
-        res.status(500).json({
-            error: 'Errore nella creazione del pagamento',
-            details: error.message
-        });
-    }
 });
 
 // ===========================
