@@ -1,5 +1,5 @@
 {
-  "name": "casa-vacanza-booking",
+  "name": "laperla-nera-booking",
   "version": "1.0.0",
   "description": "Sistema di prenotazione con sincronizzazione calendario Airbnb e pagamenti Stripe",
   "main": "server.js",
