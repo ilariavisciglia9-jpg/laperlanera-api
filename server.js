@@ -2,113 +2,38 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const ical = require('node-ical');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-require('dotenv').config();
+// ===========================
+// STRIPE CONFIGURATION (SICURA)
+// ===========================
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const nodemailer = require('nodemailer');
+
 // ===========================
 // MIDDLEWARE
 // ===========================
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // Metti tutti i tuoi file HTML/CSS/JS in una cartella "public"
-// Email Configuration
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+app.use(express.static('public'));
+
 // ===========================
 // CONFIGURAZIONE AIRBNB
 // ===========================
-const AIRBNB_ICAL_URL = 'https://www.airbnb.it/calendar/ical/1285916612879223148.ics?t=2a76b60e0e2347999bb84d7e83a88418';
+const AIRBNB_ICAL_URL = process.env.AIRBNB_ICAL_URL;
 
 // Cache per ridurre le chiamate ad Airbnb
 let cachedBookedDates = [];
 let lastSyncTime = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minuti in millisecondi
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minuti
 
-// CREATE PAYMENT INTENT
-app.post('/api/create-payment-intent', async (req, res) => {
-    try {
-        const { amount, bookingData } = req.body;
-        
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100),
-            currency: 'eur',
-            automatic_payment_methods: { enabled: true },
-            metadata: {
-                firstName: bookingData.firstName,
-                lastName: bookingData.lastName,
-                email: bookingData.email
-            }
-        });
-
-        res.json({
-            success: true,
-            clientSecret: paymentIntent.client_secret
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// CONFIRM BOOKING
-app.post('/api/confirm-booking', async (req, res) => {
-    try {
-        const booking = req.body;
-        booking.bookingId = `LPN${Date.now()}`;
-        
-        // Invia email cliente
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: booking.email,
-            subject: `✅ Prenotazione Confermata - ${booking.bookingId}`,
-            html: `
-                <h1>Prenotazione Confermata!</h1>
-                <p>Codice: <strong>${booking.bookingId}</strong></p>
-                <p>Check-in: ${booking.checkIn}</p>
-                <p>Check-out: ${booking.checkOut}</p>
-                <p>Totale pagato: €${booking.total}</p>
-            `
-        });
-        
-        // Invia email admin
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: process.env.ADMIN_EMAIL,
-            subject: `🏡 Nuova Prenotazione - ${booking.firstName} ${booking.lastName}`,
-            html: `
-                <h2>Nuova Prenotazione</h2>
-                <p>Cliente: ${booking.firstName} ${booking.lastName}</p>
-                <p>Email: ${booking.email}</p>
-                <p>Totale: €${booking.total}</p>
-            `
-        });
-        
-        res.json({ success: true, bookingId: booking.bookingId });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// STRIPE CONFIG
-app.get('/api/stripe-config', (req, res) => {
-    res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
-});
 // ===========================
 // API ENDPOINT - SYNC CALENDAR
 // ===========================
 app.post('/api/sync-calendar', async (req, res) => {
     try {
-        // Controlla se possiamo usare la cache
         const now = Date.now();
         if (lastSyncTime && (now - lastSyncTime) < CACHE_DURATION && cachedBookedDates.length > 0) {
             console.log('✅ Uso cache per le date prenotate');
@@ -123,7 +48,6 @@ app.post('/api/sync-calendar', async (req, res) => {
         console.log('📅 Sincronizzazione con Airbnb in corso...');
         console.log('🔗 URL iCal:', AIRBNB_ICAL_URL);
         
-        // Scarica il file iCal da Airbnb
         const response = await fetch(AIRBNB_ICAL_URL);
         
         if (!response.ok) {
@@ -132,20 +56,16 @@ app.post('/api/sync-calendar', async (req, res) => {
         
         const icalData = await response.text();
         
-        // Verifica che sia un file iCal valido
         if (!icalData.includes('BEGIN:VCALENDAR')) {
             throw new Error('Il file scaricato non è un iCalendar valido');
         }
         
         console.log('📥 File iCal scaricato, parsing in corso...');
         
-        // Parsa il file iCal
         const events = ical.sync.parseICS(icalData);
-        
         const bookedDates = [];
         let eventCount = 0;
         
-        // Estrai tutte le date prenotate
         for (let event of Object.values(events)) {
             if (event.type === 'VEVENT' && event.start && event.end) {
                 eventCount++;
@@ -159,7 +79,6 @@ app.post('/api/sync-calendar', async (req, res) => {
                     end: end.toISOString().split('T')[0]
                 });
                 
-                // Aggiungi ogni giorno del periodo prenotato
                 let current = new Date(start);
                 while (current < end) {
                     const dateString = current.toISOString().split('T')[0];
@@ -171,10 +90,7 @@ app.post('/api/sync-calendar', async (req, res) => {
             }
         }
         
-        // Ordina le date
         bookedDates.sort();
-        
-        // Aggiorna la cache
         cachedBookedDates = bookedDates;
         lastSyncTime = now;
         
@@ -194,7 +110,6 @@ app.post('/api/sync-calendar', async (req, res) => {
     } catch (error) {
         console.error('❌ Errore nella sincronizzazione:', error.message);
         
-        // Se abbiamo dati in cache, usali come fallback
         if (cachedBookedDates.length > 0) {
             console.log('⚠️ Uso cache come fallback');
             return res.json({
@@ -210,17 +125,16 @@ app.post('/api/sync-calendar', async (req, res) => {
             success: false,
             error: 'Errore nella sincronizzazione del calendario',
             details: error.message,
-            bookedDates: [] // Ritorna array vuoto in caso di errore
+            bookedDates: []
         });
     }
 });
 
 // ===========================
-// API ENDPOINT - GET CALENDAR (metodo GET alternativo)
+// API ENDPOINT - GET CALENDAR
 // ===========================
 app.get('/api/calendar', async (req, res) => {
     try {
-        // Usa la stessa logica del POST
         const now = Date.now();
         if (lastSyncTime && (now - lastSyncTime) < CACHE_DURATION && cachedBookedDates.length > 0) {
             return res.json({
@@ -230,7 +144,6 @@ app.get('/api/calendar', async (req, res) => {
             });
         }
 
-        // Altrimenti fai il sync
         const response = await fetch(AIRBNB_ICAL_URL);
         const icalData = await response.text();
         const events = ical.sync.parseICS(icalData);
@@ -270,15 +183,105 @@ app.get('/api/calendar', async (req, res) => {
 });
 
 // ===========================
+// 🆕 STRIPE PAYMENT INTENT (SICURO)
+// ===========================
+app.post('/api/create-payment-intent', async (req, res) => {
+    try {
+        const { amount, currency, bookingData } = req.body;
+        
+        // Validazione
+        if (!amount || amount < 50) { // Minimo 0.50€
+            return res.status(400).json({
+                error: 'Importo non valido'
+            });
+        }
+        
+        console.log('💳 Creazione Payment Intent per:', {
+            amount: amount / 100,
+            currency: currency,
+            cliente: `${bookingData.firstName} ${bookingData.lastName}`
+        });
+        
+        // Crea il Payment Intent
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: currency || 'eur',
+            automatic_payment_methods: {
+                enabled: true,
+            },
+            metadata: {
+                property: 'La Perla Nera',
+                checkIn: bookingData.checkIn,
+                checkOut: bookingData.checkOut,
+                nights: bookingData.nights,
+                guestName: `${bookingData.firstName} ${bookingData.lastName}`,
+                guestEmail: bookingData.email,
+                guestPhone: bookingData.phone,
+                adults: bookingData.adults,
+                children: bookingData.children || 0
+            },
+            description: `Prenotazione La Perla Nera - ${bookingData.checkIn} to ${bookingData.checkOut}`,
+            receipt_email: bookingData.email
+        });
+        
+        console.log('✅ Payment Intent creato:', paymentIntent.id);
+        
+        // Invia SOLO il client secret al frontend (sicuro)
+        res.json({
+            clientSecret: paymentIntent.client_secret
+        });
+        
+    } catch (error) {
+        console.error('❌ Errore creazione Payment Intent:', error.message);
+        res.status(500).json({
+            error: 'Errore nella creazione del pagamento',
+            details: error.message
+        });
+    }
+});
+
+// ===========================
+// 🆕 WEBHOOK STRIPE (CONFERMA PAGAMENTI)
+// ===========================
+app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    
+    let event;
+    
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err) {
+        console.error('❌ Webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+    
+    // Gestisci l'evento
+    if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object;
+        console.log('💰 Pagamento ricevuto:', paymentIntent.id);
+        console.log('📧 Cliente:', paymentIntent.receipt_email);
+        console.log('💵 Importo:', paymentIntent.amount / 100, paymentIntent.currency.toUpperCase());
+        
+        // QUI: Invia email di conferma, salva nel database, ecc.
+        // await sendConfirmationEmail(paymentIntent.metadata);
+        // await saveBookingToDatabase(paymentIntent.metadata);
+    }
+    
+    res.json({received: true});
+});
+
+// ===========================
 // API ENDPOINT - STATUS
 // ===========================
 app.get('/api/status', (req, res) => {
     res.json({
         status: 'online',
-        service: 'Casa Vacanza Booking System',
+        service: 'La Perla Nera Booking System',
         lastSync: lastSyncTime ? new Date(lastSyncTime).toISOString() : 'Never',
         cachedDates: cachedBookedDates.length,
-        cacheValid: lastSyncTime && (Date.now() - lastSyncTime) < CACHE_DURATION
+        cacheValid: lastSyncTime && (Date.now() - lastSyncTime) < CACHE_DURATION,
+        stripeConfigured: !!process.env.STRIPE_SECRET_KEY
     });
 });
 
@@ -290,19 +293,19 @@ app.get('/', (req, res) => {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Booking API</title>
+            <title>La Perla Nera - Booking API</title>
             <style>
                 body { font-family: Arial; padding: 40px; background: #f5f5f5; }
                 .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                h1 { color: #0047AB; }
-                .endpoint { background: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 4px solid #0047AB; }
+                h1 { color: #8B0000; }
+                .endpoint { background: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 4px solid #8B0000; }
                 code { background: #eee; padding: 2px 6px; border-radius: 3px; }
                 .status { color: #28a745; font-weight: bold; }
             </style>
         </head>
         <body>
             <div class="container">
-                <h1>🏠 Casa Vacanza Booking API</h1>
+                <h1>🏠 La Perla Nera - Booking API</h1>
                 <p class="status">✅ Server Online</p>
                 
                 <h2>📡 API Endpoints:</h2>
@@ -318,6 +321,16 @@ app.get('/', (req, res) => {
                 </div>
                 
                 <div class="endpoint">
+                    <strong>POST /api/create-payment-intent</strong><br>
+                    Crea un pagamento Stripe sicuro
+                </div>
+                
+                <div class="endpoint">
+                    <strong>POST /api/webhook</strong><br>
+                    Ricevi conferme pagamento da Stripe
+                </div>
+                
+                <div class="endpoint">
                     <strong>GET /api/status</strong><br>
                     Verifica lo stato del server
                 </div>
@@ -327,6 +340,7 @@ app.get('/', (req, res) => {
                     <li>Date in cache: <strong>${cachedBookedDates.length}</strong></li>
                     <li>Ultimo sync: <strong>${lastSyncTime ? new Date(lastSyncTime).toLocaleString('it-IT') : 'Mai'}</strong></li>
                     <li>Cache valida: <strong>${lastSyncTime && (Date.now() - lastSyncTime) < CACHE_DURATION ? 'Sì' : 'No'}</strong></li>
+                    <li>Stripe: <strong>${process.env.STRIPE_SECRET_KEY ? '✅ Configurato' : '❌ Non configurato'}</strong></li>
                 </ul>
                 
                 <p style="margin-top: 30px; color: #666; font-size: 14px;">
@@ -354,7 +368,7 @@ app.use((req, res) => {
 app.listen(PORT, () => {
     console.log('');
     console.log('🏠 ================================');
-    console.log('   CASA VACANZA BOOKING SYSTEM');
+    console.log('   LA PERLA NERA BOOKING SYSTEM');
     console.log('   ================================');
     console.log('');
     console.log(`✅ Server avviato su http://localhost:${PORT}`);
@@ -363,12 +377,13 @@ app.listen(PORT, () => {
     console.log('📌 Endpoints disponibili:');
     console.log('   POST /api/sync-calendar - Sync con Airbnb');
     console.log('   GET  /api/calendar - Ottieni date prenotate');
+    console.log('   POST /api/create-payment-intent - Crea pagamento Stripe');
+    console.log('   POST /api/webhook - Webhook Stripe');
     console.log('   GET  /api/status - Stato del sistema');
     console.log('');
     console.log('⏰ Auto-sync ogni 5 minuti');
     console.log('💾 Cache: 5 minuti');
-    console.log('');
-    console.log('🔗 URL Airbnb configurato');
+    console.log(`💳 Stripe: ${process.env.STRIPE_SECRET_KEY ? '✅ Configurato' : '❌ Mancante'}`);
     console.log('');
 });
 
