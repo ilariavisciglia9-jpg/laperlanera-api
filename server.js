@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const ical = require('node-ical');
-const nodemailer = require('nodemailer');
-const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -13,19 +11,6 @@ const PORT = process.env.PORT || 3000;
 // STRIPE CONFIGURATION (SICURA)
 // ===========================
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-// ===========================
-// EMAIL CONFIGURATION
-// ===========================
-const emailTransporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT),
-    secure: true,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
 
 // ===========================
 // MIDDLEWARE
@@ -43,30 +28,6 @@ const AIRBNB_ICAL_URL = process.env.AIRBNB_ICAL_URL;
 let cachedBookedDates = [];
 let lastSyncTime = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minuti
-
-// ===========================
-// DATE BLOCCATE LOCALMENTE
-// ===========================
-const BLOCKED_DATES_FILE = './blocked_dates.json';
-
-function loadBlockedDates() {
-    try {
-        if (fs.existsSync(BLOCKED_DATES_FILE)) {
-            return JSON.parse(fs.readFileSync(BLOCKED_DATES_FILE, 'utf8'));
-        }
-    } catch (e) {}
-    return [];
-}
-
-function saveBlockedDates(dates) {
-    try {
-        fs.writeFileSync(BLOCKED_DATES_FILE, JSON.stringify(dates));
-    } catch (e) {
-        console.error('❌ Errore salvataggio date:', e.message);
-    }
-}
-
-let locallyBlockedDates = loadBlockedDates();
 
 // ===========================
 // API ENDPOINT - SYNC CALENDAR
@@ -129,19 +90,19 @@ app.post('/api/sync-calendar', async (req, res) => {
             }
         }
         
-        const allDates = [...new Set([...bookedDates, ...locallyBlockedDates])].sort();
-        cachedBookedDates = allDates;
+        bookedDates.sort();
+        cachedBookedDates = bookedDates;
         lastSyncTime = now;
         
         console.log('✅ Sincronizzazione completata!');
         console.log(`📊 Trovati ${eventCount} eventi totali`);
-        console.log(`📅 ${allDates.length} date prenotate`);
+        console.log(`📅 ${bookedDates.length} date prenotate`);
         
         res.json({
             success: true,
-            bookedDates: allDates,
+            bookedDates: bookedDates,
             totalEvents: eventCount,
-            totalDays: allDates.length,
+            totalDays: bookedDates.length,
             cached: false,
             syncTime: new Date().toISOString()
         });
@@ -202,13 +163,13 @@ app.get('/api/calendar', async (req, res) => {
             }
         }
         
-        const allDates = [...new Set([...bookedDates, ...locallyBlockedDates])].sort();
-        cachedBookedDates = allDates;
+        bookedDates.sort();
+        cachedBookedDates = bookedDates;
         lastSyncTime = now;
         
         res.json({
             success: true,
-            bookedDates: allDates
+            bookedDates: bookedDates
         });
         
     } catch (error) {
@@ -222,13 +183,14 @@ app.get('/api/calendar', async (req, res) => {
 });
 
 // ===========================
-// STRIPE PAYMENT INTENT (SICURO)
+// 🆕 STRIPE PAYMENT INTENT (SICURO)
 // ===========================
 app.post('/api/create-payment-intent', async (req, res) => {
     try {
         const { amount, currency, bookingData } = req.body;
         
-        if (!amount || amount < 50) {
+        // Validazione
+        if (!amount || amount < 50) { // Minimo 0.50€
             return res.status(400).json({
                 error: 'Importo non valido'
             });
@@ -240,6 +202,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
             cliente: `${bookingData.firstName} ${bookingData.lastName}`
         });
         
+        // Crea il Payment Intent
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: currency || 'eur',
@@ -263,6 +226,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
         
         console.log('✅ Payment Intent creato:', paymentIntent.id);
         
+        // Invia SOLO il client secret al frontend (sicuro)
         res.json({
             clientSecret: paymentIntent.client_secret
         });
@@ -275,9 +239,15 @@ app.post('/api/create-payment-intent', async (req, res) => {
         });
     }
 });
+// Endpoint per fornire la chiave pubblica Stripe al frontend
+app.get('/api/stripe-config', (req, res) => {
+    res.json({
+        publishableKey: process.env.STRIPE_PUBLIC_KEY
+    });
+});
 
 // ===========================
-// WEBHOOK STRIPE (CONFERMA PAGAMENTI)
+// 🆕 WEBHOOK STRIPE (CONFERMA PAGAMENTI)
 // ===========================
 app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
     const sig = req.headers['stripe-signature'];
@@ -292,69 +262,16 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
     
+    // Gestisci l'evento
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
-        const meta = paymentIntent.metadata;
-        const importo = (paymentIntent.amount / 100).toFixed(2);
-
         console.log('💰 Pagamento ricevuto:', paymentIntent.id);
-
-        // Blocca le date automaticamente
-        if (meta.checkIn && meta.checkOut) {
-            const checkIn = new Date(meta.checkIn);
-            const checkOut = new Date(meta.checkOut);
-            let current = new Date(checkIn);
-            
-            while (current < checkOut) {
-                const dateString = current.toISOString().split('T')[0];
-                if (!locallyBlockedDates.includes(dateString)) {
-                    locallyBlockedDates.push(dateString);
-                }
-                current.setDate(current.getDate() + 1);
-            }
-            
-            saveBlockedDates(locallyBlockedDates);
-            lastSyncTime = null; // Invalida cache
-            console.log(`🔒 Date bloccate: ${meta.checkIn} → ${meta.checkOut}`);
-        }
-
-        // Invia email di notifica
-        try {
-            await emailTransporter.sendMail({
-                from: '"La Perla Nera" <info@laperlanera.eu>',
-                to: 'info@laperlanera.eu',
-                subject: `🏠 NUOVA PRENOTAZIONE - ${meta.guestName} | ${meta.checkIn} → ${meta.checkOut}`,
-                html: `
-                    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                        <div style="background:#8B0000;color:white;padding:20px;text-align:center;">
-                            <h1 style="margin:0;">🏠 La Perla Nera</h1>
-                            <p style="margin:5px 0 0;">Nuova Prenotazione Confermata</p>
-                        </div>
-                        <div style="padding:30px;border:1px solid #ddd;">
-                            <h2 style="color:#8B0000;">✅ Pagamento ricevuto!</h2>
-                            <table style="width:100%;border-collapse:collapse;">
-                                <tr style="background:#f9f9f9;"><td style="padding:10px;border:1px solid #eee;font-weight:bold;">Ospite</td><td style="padding:10px;border:1px solid #eee;">${meta.guestName}</td></tr>
-                                <tr><td style="padding:10px;border:1px solid #eee;font-weight:bold;">Email</td><td style="padding:10px;border:1px solid #eee;">${paymentIntent.receipt_email}</td></tr>
-                                <tr style="background:#f9f9f9;"><td style="padding:10px;border:1px solid #eee;font-weight:bold;">Telefono</td><td style="padding:10px;border:1px solid #eee;">${meta.guestPhone || 'N/D'}</td></tr>
-                                <tr><td style="padding:10px;border:1px solid #eee;font-weight:bold;">Check-in</td><td style="padding:10px;border:1px solid #eee;color:#8B0000;font-weight:bold;">${meta.checkIn}</td></tr>
-                                <tr style="background:#f9f9f9;"><td style="padding:10px;border:1px solid #eee;font-weight:bold;">Check-out</td><td style="padding:10px;border:1px solid #eee;color:#8B0000;font-weight:bold;">${meta.checkOut}</td></tr>
-                                <tr><td style="padding:10px;border:1px solid #eee;font-weight:bold;">Notti</td><td style="padding:10px;border:1px solid #eee;">${meta.nights}</td></tr>
-                                <tr style="background:#f9f9f9;"><td style="padding:10px;border:1px solid #eee;font-weight:bold;">Ospiti</td><td style="padding:10px;border:1px solid #eee;">${meta.adults} adulti, ${meta.children || 0} bambini</td></tr>
-                                <tr><td style="padding:10px;border:1px solid #eee;font-weight:bold;">💰 Totale</td><td style="padding:10px;border:1px solid #eee;font-size:18px;color:#8B0000;font-weight:bold;">€${importo}</td></tr>
-                                <tr style="background:#f9f9f9;"><td style="padding:10px;border:1px solid #eee;font-weight:bold;">ID Pagamento</td><td style="padding:10px;border:1px solid #eee;font-size:12px;color:#666;">${paymentIntent.id}</td></tr>
-                            </table>
-                            <div style="background:#fff3cd;border:1px solid #ffc107;padding:15px;margin-top:20px;">
-                                <strong>⚠️ AZIONE RICHIESTA:</strong><br>
-                                Blocca le date <strong>${meta.checkIn} → ${meta.checkOut}</strong> su Airbnb per evitare doppie prenotazioni.
-                            </div>
-                        </div>
-                    </div>
-                `
-            });
-            console.log('📧 Email notifica inviata');
-        } catch (emailError) {
-            console.error('❌ Errore invio email:', emailError.message);
-        }
+        console.log('📧 Cliente:', paymentIntent.receipt_email);
+        console.log('💵 Importo:', paymentIntent.amount / 100, paymentIntent.currency.toUpperCase());
+        
+        // QUI: Invia email di conferma, salva nel database, ecc.
+        // await sendConfirmationEmail(paymentIntent.metadata);
+        // await saveBookingToDatabase(paymentIntent.metadata);
     }
     
     res.json({received: true});
@@ -370,8 +287,7 @@ app.get('/api/status', (req, res) => {
         lastSync: lastSyncTime ? new Date(lastSyncTime).toISOString() : 'Never',
         cachedDates: cachedBookedDates.length,
         cacheValid: lastSyncTime && (Date.now() - lastSyncTime) < CACHE_DURATION,
-        stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
-        locallyBlockedDates: locallyBlockedDates.length
+        stripeConfigured: !!process.env.STRIPE_SECRET_KEY
     });
 });
 
@@ -397,13 +313,45 @@ app.get('/', (req, res) => {
             <div class="container">
                 <h1>🏠 La Perla Nera - Booking API</h1>
                 <p class="status">✅ Server Online</p>
+                
+                <h2>📡 API Endpoints:</h2>
+                
+                <div class="endpoint">
+                    <strong>POST /api/sync-calendar</strong><br>
+                    Sincronizza il calendario con Airbnb
+                </div>
+                
+                <div class="endpoint">
+                    <strong>GET /api/calendar</strong><br>
+                    Ottieni le date prenotate (usa cache se disponibile)
+                </div>
+                
+                <div class="endpoint">
+                    <strong>POST /api/create-payment-intent</strong><br>
+                    Crea un pagamento Stripe sicuro
+                </div>
+                
+                <div class="endpoint">
+                    <strong>POST /api/webhook</strong><br>
+                    Ricevi conferme pagamento da Stripe
+                </div>
+                
+                <div class="endpoint">
+                    <strong>GET /api/status</strong><br>
+                    Verifica lo stato del server
+                </div>
+                
                 <h2>📊 Info:</h2>
                 <ul>
-                    <li>Date Airbnb in cache: <strong>${cachedBookedDates.length}</strong></li>
-                    <li>Date bloccate localmente: <strong>${locallyBlockedDates.length}</strong></li>
+                    <li>Date in cache: <strong>${cachedBookedDates.length}</strong></li>
                     <li>Ultimo sync: <strong>${lastSyncTime ? new Date(lastSyncTime).toLocaleString('it-IT') : 'Mai'}</strong></li>
+                    <li>Cache valida: <strong>${lastSyncTime && (Date.now() - lastSyncTime) < CACHE_DURATION ? 'Sì' : 'No'}</strong></li>
                     <li>Stripe: <strong>${process.env.STRIPE_SECRET_KEY ? '✅ Configurato' : '❌ Non configurato'}</strong></li>
                 </ul>
+                
+                <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                    💡 I tuoi file HTML vanno nella cartella <code>public/</code>
+                </p>
             </div>
         </body>
         </html>
@@ -430,11 +378,24 @@ app.listen(PORT, () => {
     console.log('   ================================');
     console.log('');
     console.log(`✅ Server avviato su http://localhost:${PORT}`);
+    console.log(`📡 API disponibile su http://localhost:${PORT}/api`);
+    console.log('');
+    console.log('📌 Endpoints disponibili:');
+    console.log('   POST /api/sync-calendar - Sync con Airbnb');
+    console.log('   GET  /api/calendar - Ottieni date prenotate');
+    console.log('   POST /api/create-payment-intent - Crea pagamento Stripe');
+    console.log('   POST /api/webhook - Webhook Stripe');
+    console.log('   GET  /api/status - Stato del sistema');
+    console.log('');
+    console.log('⏰ Auto-sync ogni 5 minuti');
+    console.log('💾 Cache: 5 minuti');
     console.log(`💳 Stripe: ${process.env.STRIPE_SECRET_KEY ? '✅ Configurato' : '❌ Mancante'}`);
-    console.log(`📅 Date bloccate localmente: ${locallyBlockedDates.length}`);
     console.log('');
 });
 
+// ===========================
+// GESTIONE CHIUSURA SERVER
+// ===========================
 process.on('SIGINT', () => {
     console.log('\n👋 Chiusura server...');
     process.exit(0);
