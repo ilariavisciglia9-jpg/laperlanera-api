@@ -1,7 +1,7 @@
 {
-  "name": "laperla-nera-booking",
+  "name": "laperlanera-booking",
   "version": "1.0.0",
-  "description": "Sistema di prenotazione con sincronizzazione calendario Airbnb e pagamenti Stripe",
+  "description": "Sistema di prenotazione La Perla Nera con Stripe e sincronizzazione Airbnb",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -14,17 +14,17 @@
     "ical",
     "vacation-rental",
     "stripe",
-    "payments"
+    "payment"
   ],
-  "author": "",
+  "author": "La Perla Nera",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "node-fetch": "^2.6.7",
     "node-ical": "^0.15.3",
-    "nodemailer": "^6.9.0",
+    "nodemailer": "^8.0.2",
     "stripe": "^14.10.0"
   },
   "devDependencies": {
@@ -34,3 +34,4 @@
     "node": ">=14.0.0"
   }
 }
+
