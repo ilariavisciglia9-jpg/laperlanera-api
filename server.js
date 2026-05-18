@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const ical = require('node-ical');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
@@ -18,6 +19,84 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+
+// ===========================
+// 🛡️ ANTI-CARDING: IP BLOCKLIST IN MEMORIA
+// ===========================
+const blockedIPs = new Map(); // IP -> timestamp blocco
+const failedAttempts = new Map(); // IP -> { count, firstAttempt }
+const MAX_FAILURES = 3; // Dopo 3 errori consecutivi, blocca l'IP
+const BLOCK_DURATION = 60 * 60 * 1000; // 1 ora di blocco
+
+function getClientIP(req) {
+    return (
+        req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+        req.headers['x-real-ip'] ||
+        req.connection.remoteAddress ||
+        req.ip
+    );
+}
+
+function isIPBlocked(ip) {
+    if (!blockedIPs.has(ip)) return false;
+    const blockedAt = blockedIPs.get(ip);
+    if (Date.now() - blockedAt > BLOCK_DURATION) {
+        blockedIPs.delete(ip);
+        failedAttempts.delete(ip);
+        return false;
+    }
+    return true;
+}
+
+function recordFailedAttempt(ip) {
+    const now = Date.now();
+    const record = failedAttempts.get(ip) || { count: 0, firstAttempt: now };
+    record.count++;
+    failedAttempts.set(ip, record);
+    if (record.count >= MAX_FAILURES) {
+        blockedIPs.set(ip, now);
+        console.warn(`🚫 IP bloccato per abuso: ${ip} (${record.count} tentativi falliti)`);
+    }
+}
+
+function clearFailedAttempts(ip) {
+    failedAttempts.delete(ip);
+}
+
+// ===========================
+// 🛡️ ANTI-CARDING: RATE LIMITER GLOBALE
+// ===========================
+// Limite globale: max 100 richieste ogni 15 minuti per IP
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: getClientIP,
+    message: { error: 'Troppe richieste. Riprova tra qualche minuto.' }
+});
+app.use(globalLimiter);
+
+// ===========================
+// 🛡️ ANTI-CARDING: RATE LIMITER STRICT SU PAGAMENTI
+// ===========================
+// Max 5 tentativi di pagamento per ora per IP
+const paymentLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 ora
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: getClientIP,
+    handler: (req, res) => {
+        const ip = getClientIP(req);
+        console.warn(`🚫 Rate limit pagamento raggiunto per IP: ${ip}`);
+        blockedIPs.set(ip, Date.now()); // Blocca subito chi supera il limite
+        res.status(429).json({
+            error: 'Troppi tentativi di pagamento. Riprova tra un\'ora.',
+            retryAfter: '3600'
+        });
+    }
+});
 
 // ===========================
 // CONFIGURAZIONE AIRBNB
@@ -183,26 +262,83 @@ app.get('/api/calendar', async (req, res) => {
 });
 
 // ===========================
-// 🆕 STRIPE PAYMENT INTENT (SICURO)
+// 🛡️ STRIPE PAYMENT INTENT (PROTETTO ANTI-CARDING)
 // ===========================
-app.post('/api/create-payment-intent', async (req, res) => {
+app.post('/api/create-payment-intent', paymentLimiter, async (req, res) => {
+    const ip = getClientIP(req);
+
+    // 1. Controlla se l'IP è bloccato
+    if (isIPBlocked(ip)) {
+        console.warn(`🚫 Richiesta bloccata da IP in blacklist: ${ip}`);
+        return res.status(403).json({
+            error: 'Accesso temporaneamente bloccato. Contattaci per assistenza.'
+        });
+    }
+
     try {
         const { amount, currency, bookingData } = req.body;
-        
-        // Validazione
-        if (!amount || amount < 50) { // Minimo 0.50€
-            return res.status(400).json({
-                error: 'Importo non valido'
-            });
+
+        // 2. Validazione rigorosa dei campi obbligatori
+        if (!bookingData || typeof bookingData !== 'object') {
+            recordFailedAttempt(ip);
+            return res.status(400).json({ error: 'Dati di prenotazione mancanti.' });
         }
-        
+
+        const { firstName, lastName, email, phone, checkIn, checkOut, nights, adults } = bookingData;
+
+        if (!firstName || !lastName || !email || !phone || !checkIn || !checkOut || !nights || !adults) {
+            recordFailedAttempt(ip);
+            return res.status(400).json({ error: 'Tutti i campi della prenotazione sono obbligatori.' });
+        }
+
+        // 3. Validazione email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            recordFailedAttempt(ip);
+            return res.status(400).json({ error: 'Indirizzo email non valido.' });
+        }
+
+        // 4. Validazione importo: deve essere un intero positivo e ragionevole
+        if (!amount || !Number.isInteger(amount) || amount < 5000 || amount > 1000000) {
+            // min 50€, max 10.000€
+            recordFailedAttempt(ip);
+            return res.status(400).json({ error: 'Importo non valido.' });
+        }
+
+        // 5. Validazione date
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
+
+        if (isNaN(checkInDate) || isNaN(checkOutDate)) {
+            recordFailedAttempt(ip);
+            return res.status(400).json({ error: 'Date non valide.' });
+        }
+        if (checkInDate < today) {
+            recordFailedAttempt(ip);
+            return res.status(400).json({ error: 'La data di check-in non può essere nel passato.' });
+        }
+        if (checkOutDate <= checkInDate) {
+            recordFailedAttempt(ip);
+            return res.status(400).json({ error: 'Il check-out deve essere dopo il check-in.' });
+        }
+
+        // 6. Validazione numero notti coerente con le date
+        const diffDays = Math.round((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+        if (diffDays !== parseInt(nights)) {
+            recordFailedAttempt(ip);
+            return res.status(400).json({ error: 'Numero di notti non coerente con le date.' });
+        }
+
         console.log('💳 Creazione Payment Intent per:', {
             amount: amount / 100,
             currency: currency,
-            cliente: `${bookingData.firstName} ${bookingData.lastName}`
+            cliente: `${firstName} ${lastName}`,
+            ip: ip
         });
-        
-        // Crea il Payment Intent
+
+        // 7. Crea il Payment Intent
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: currency || 'eur',
@@ -211,27 +347,31 @@ app.post('/api/create-payment-intent', async (req, res) => {
             },
             metadata: {
                 property: 'La Perla Nera',
-                checkIn: bookingData.checkIn,
-                checkOut: bookingData.checkOut,
-                nights: bookingData.nights,
-                guestName: `${bookingData.firstName} ${bookingData.lastName}`,
-                guestEmail: bookingData.email,
-                guestPhone: bookingData.phone,
-                adults: bookingData.adults,
-                children: bookingData.children || 0
+                checkIn: checkIn,
+                checkOut: checkOut,
+                nights: nights,
+                guestName: `${firstName} ${lastName}`,
+                guestEmail: email,
+                guestPhone: phone,
+                adults: adults,
+                children: bookingData.children || 0,
+                clientIP: ip
             },
-            description: `Prenotazione La Perla Nera - ${bookingData.checkIn} to ${bookingData.checkOut}`,
-            receipt_email: bookingData.email
+            description: `Prenotazione La Perla Nera - ${checkIn} to ${checkOut}`,
+            receipt_email: email
         });
-        
+
+        // Pagamento avviato correttamente: resetta i fallimenti per questo IP
+        clearFailedAttempts(ip);
+
         console.log('✅ Payment Intent creato:', paymentIntent.id);
-        
-        // Invia SOLO il client secret al frontend (sicuro)
+
         res.json({
             clientSecret: paymentIntent.client_secret
         });
-        
+
     } catch (error) {
+        recordFailedAttempt(ip);
         console.error('❌ Errore creazione Payment Intent:', error.message);
         res.status(500).json({
             error: 'Errore nella creazione del pagamento',
@@ -239,6 +379,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
         });
     }
 });
+
 // Endpoint per fornire la chiave pubblica Stripe al frontend
 app.get('/api/stripe-config', (req, res) => {
     res.json({
@@ -262,16 +403,11 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
     
-    // Gestisci l'evento
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
         console.log('💰 Pagamento ricevuto:', paymentIntent.id);
         console.log('📧 Cliente:', paymentIntent.receipt_email);
         console.log('💵 Importo:', paymentIntent.amount / 100, paymentIntent.currency.toUpperCase());
-        
-        // QUI: Invia email di conferma, salva nel database, ecc.
-        // await sendConfirmationEmail(paymentIntent.metadata);
-        // await saveBookingToDatabase(paymentIntent.metadata);
     }
     
     res.json({received: true});
@@ -287,7 +423,8 @@ app.get('/api/status', (req, res) => {
         lastSync: lastSyncTime ? new Date(lastSyncTime).toISOString() : 'Never',
         cachedDates: cachedBookedDates.length,
         cacheValid: lastSyncTime && (Date.now() - lastSyncTime) < CACHE_DURATION,
-        stripeConfigured: !!process.env.STRIPE_SECRET_KEY
+        stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
+        blockedIPs: blockedIPs.size
     });
 });
 
@@ -328,7 +465,7 @@ app.get('/', (req, res) => {
                 
                 <div class="endpoint">
                     <strong>POST /api/create-payment-intent</strong><br>
-                    Crea un pagamento Stripe sicuro
+                    Crea un pagamento Stripe sicuro 🛡️
                 </div>
                 
                 <div class="endpoint">
@@ -347,11 +484,8 @@ app.get('/', (req, res) => {
                     <li>Ultimo sync: <strong>${lastSyncTime ? new Date(lastSyncTime).toLocaleString('it-IT') : 'Mai'}</strong></li>
                     <li>Cache valida: <strong>${lastSyncTime && (Date.now() - lastSyncTime) < CACHE_DURATION ? 'Sì' : 'No'}</strong></li>
                     <li>Stripe: <strong>${process.env.STRIPE_SECRET_KEY ? '✅ Configurato' : '❌ Non configurato'}</strong></li>
+                    <li>IP bloccati: <strong>${blockedIPs.size}</strong></li>
                 </ul>
-                
-                <p style="margin-top: 30px; color: #666; font-size: 14px;">
-                    💡 I tuoi file HTML vanno nella cartella <code>public/</code>
-                </p>
             </div>
         </body>
         </html>
@@ -380,6 +514,12 @@ app.listen(PORT, () => {
     console.log(`✅ Server avviato su http://localhost:${PORT}`);
     console.log(`📡 API disponibile su http://localhost:${PORT}/api`);
     console.log('');
+    console.log('🛡️ Protezioni attive:');
+    console.log('   - Rate limit globale: 100 req/15min per IP');
+    console.log('   - Rate limit pagamenti: 5 req/ora per IP');
+    console.log('   - Blocco IP dopo 3 errori consecutivi');
+    console.log('   - Validazione rigorosa di tutti i campi');
+    console.log('');
     console.log('📌 Endpoints disponibili:');
     console.log('   POST /api/sync-calendar - Sync con Airbnb');
     console.log('   GET  /api/calendar - Ottieni date prenotate');
@@ -387,15 +527,10 @@ app.listen(PORT, () => {
     console.log('   POST /api/webhook - Webhook Stripe');
     console.log('   GET  /api/status - Stato del sistema');
     console.log('');
-    console.log('⏰ Auto-sync ogni 5 minuti');
-    console.log('💾 Cache: 5 minuti');
     console.log(`💳 Stripe: ${process.env.STRIPE_SECRET_KEY ? '✅ Configurato' : '❌ Mancante'}`);
     console.log('');
 });
 
-// ===========================
-// GESTIONE CHIUSURA SERVER
-// ===========================
 process.on('SIGINT', () => {
     console.log('\n👋 Chiusura server...');
     process.exit(0);
