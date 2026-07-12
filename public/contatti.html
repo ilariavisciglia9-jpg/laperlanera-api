@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="it">
+    <!-- Iubenda Privacy & Cookie Scripts -->
+    <script type="text/javascript">
+        (function (w,d) {
+            var loader = function () {
+                var s = d.createElement("script"), 
+                    tag = d.getElementsByTagName("script")[0]; 
+                s.src="https://cdn.iubenda.com/iubenda.js"; 
+                tag.parentNode.insertBefore(s,tag);
+            }; 
+            if(w.addEventListener){
+                w.addEventListener("load", loader, false);
+            }else if(w.attachEvent){
+                w.attachEvent("onload", loader);
+            }else{
+                w.onload = loader;
+            }
+        })(window, document);
+    </script>
+    
+    <!-- Iubenda Cookie Banner Widget -->
+    <script type="text/javascript" src="https://embeds.iubenda.com/widgets/332b949f-6aaf-444c-b82f-2cb70a38b563.js"></script>
+</head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contatti - La perla nera | Siamo Qui per Te</title>
+        <link rel="icon" type="image/png" href="laperla_nera_logo-vettoriale.png">
+    <meta name="description" content="Contattaci per informazioni sulla casa vacanza a Roma. Siamo disponibili 24/7 per rispondere a tutte le tue domande. Email, telefono e form di contatto rapido.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .contact-hero {
+            background: linear-gradient(135deg, var(--cobalt-blue), var(--dark-cobalt));
+            padding: 8rem 0 4rem;
+            text-align: center;
+            color: var(--bg-white);
+        }
+
+        .contact-hero h1 {
+            color: var(--bg-white);
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-hero p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .contact-section {
+            padding: 5rem 0;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .contact-info {
+            background: var(--bg-white);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            position: sticky;
+            top: 100px;
+        }
+
+        .contact-info h2 {
+            margin-bottom: 2rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-light);
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+
+        .info-item:hover {
+            transform: translateX(5px);
+            background: rgba(0, 71, 171, 0.05);
+        }
+
+        .info-icon {
+            font-size: 2.5rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .info-content h3 {
+            color: var(--cobalt-blue);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .info-content p {
+            margin: 0;
+            color: var(--text-gray);
+        }
+
+        .info-content a {
+            color: var(--cobalt-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .info-content a:hover {
+            color: var(--dark-cobalt);
+            text-decoration: underline;
+        }
+
+        .contact-form-container {
+            background: var(--bg-white);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+        }
+
+        .contact-form-container h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-form label {
+            display: block;
+            color: var(--cobalt-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-form input,
+        .contact-form textarea,
+        .contact-form select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Montserrat', sans-serif;
+            transition: var(--transition);
+        }
+
+        .contact-form input:focus,
+        .contact-form textarea:focus,
+        .contact-form select:focus {
+            outline: none;
+            border-color: var(--cobalt-blue);
+            box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.1);
+        }
+
+        .contact-form textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .map-section {
+            background: var(--bg-light);
+            padding: 4rem 0;
+        }
+
+        .map-container {
+            margin-top: 2rem;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px var(--shadow);
+            height: 500px;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-placeholder {
+            text-align: center;
+            color: var(--text-gray);
+        }
+
+        .map-placeholder h3 {
+            color: var(--cobalt-blue);
+            margin-bottom: 1rem;
+        }
+
+        .faq-section {
+            padding: 5rem 0;
+        }
+
+        .faq-grid {
+            display: grid;
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 3rem auto 0;
+        }
+
+        .faq-item {
+            background: var(--bg-white);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .faq-question {
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .faq-question:hover {
+            background: rgba(0, 71, 171, 0.05);
+        }
+
+        .faq-question h3 {
+            color: var(--cobalt-blue);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .faq-toggle {
+            font-size: 1.5rem;
+            color: var(--cobalt-blue);
+            transition: var(--transition);
+        }
+
+        .faq-item.active .faq-toggle {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .faq-answer-content {
+            padding: 0 2rem 1.5rem;
+            color: var(--text-gray);
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+
+        .social-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .social-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 2rem;
+            background: var(--bg-white);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            text-decoration: none;
+            min-width: 150px;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(0, 71, 171, 0.2);
+        }
+
+        .social-icon-img {
+            font-size: 3rem;
+        }
+
+        .social-icon-text {
+            color: var(--cobalt-blue);
+            font-weight: 600;
+        }
+
+        @media (max-width: 968px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                position: static;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+   <!-- Navigation -->
+<nav class="navbar">
+    <div class="container">
+        <div class="nav-brand">
+            <img src="laperla_nera_logo-vettoriale.png" alt="La Perla Nera Logo" style="height: 70px; width: auto; display: block; margin: 0 auto 5px auto;">
+            <h1>LA PERLA NERA</h1>
+        </div>
+        <ul class="nav-menu" id="navMenu">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="camere.html">Camere</a></li>
+            <li><a href="servizi.html">Servizi</a></li>
+            <li><a href="prenotazioni.html">Prenota Ora</a></li>
+            <li><a href="contatti.html">Contatti</a></li>
+        </ul>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+    <!-- Hero -->
+    <section class="contact-hero">
+        <div class="container">
+            <h1>Contattaci</h1>
+            <p>Siamo qui per rispondere a tutte le tue domande. Scrivici o chiamaci!</p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <!-- Contact Info -->
+                <div class="contact-info">
+                    <h2>Informazioni di Contatto</h2>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">📧</div>
+                        <div class="info-content">
+                            <h3>Email</h3>
+                            <p><a href="mailto:info@casavacanzeroma.it">info@laperlanera.eu</a></p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Risposta entro 24 ore</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">📞</div>
+                        <div class="info-content">
+                            <h3>Telefono / WhatsApp</h3>
+                            <p><a href="tel:+39XXXXXXXXXX">+39 3806558872</a></p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Disponibile 9:00 - 21:00</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">📍</div>
+                        <div class="info-content">
+                            <h3>Indirizzo</h3>
+                            <p>Via Casilina 1752 Roma, Italia</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Vicino Metro C - Fermata Borghesiana</p>
+                            <p style="font-size: 0.9rem;">35 minuti dal Colosseo</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">🕐</div>
+                        <div class="info-content">
+                            <h3>Orari di Check-in</h3>
+                            <p><strong>Check-in:</strong> dalle 15:00</p>
+                            <p><strong>Check-out:</strong> entro le 11:00</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Self check-in disponibile 24/7</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">🌐</div>
+                        <div class="info-content">
+                            <h3>Seguici Online</h3>
+                            <p>Airbnb • Booking.com</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Recensioni verificate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="contact-form-container">
+                    <h2>Inviaci un Messaggio</h2>
+                    <p style="color: var(--text-gray); margin-bottom: 2rem;">Compila il form e ti risponderemo al più presto</p>
+
+                    <form class="contact-form" id="contactForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contactName">Nome *</label>
+                                <input type="text" id="contactName" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactEmail">Email *</label>
+                                <input type="email" id="contactEmail" name="email" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contactPhone">Telefono</label>
+                                <input type="tel" id="contactPhone" name="phone">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactSubject">Oggetto *</label>
+                                <select id="contactSubject" name="subject" required>
+                                    <option value="">Seleziona</option>
+                                    <option value="info">Richiesta Informazioni</option>
+                                    <option value="booking">Prenotazione</option>
+                                    <option value="dates">Disponibilità Date</option>
+                                    <option value="prices">Prezzi e Tariffe</option>
+                                    <option value="services">Servizi</option>
+                                    <option value="other">Altro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactDates">Date di Interesse (opzionale)</label>
+                            <input type="text" id="contactDates" name="dates" placeholder="Es: 15-20 Marzo 2025">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactMessage">Messaggio *</label>
+                            <textarea id="contactMessage" name="message" required placeholder="Scrivi qui la tua richiesta..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                                <input type="checkbox" required style="width: auto;">
+                                Accetto la <a href="#" style="color: var(--cobalt-blue);">Privacy Policy</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-large" style="width: 100%;">
+                            Invia Messaggio
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="map-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Dove Siamo</h2>
+                <p class="section-subtitle">Posizione strategica vicino alla Metro C</p>
+            </div>
+            <div class="map-container">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5942.674768851711!2d12.665195776083873!3d41.8640870712434!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132f7d9e1efb19c9%3A0xabe2a5f7cea4e9ab!2sVia%20Casilina%2C%201752%2C%2000133%20Roma%20RM!5e0!3m2!1sit!2sit!4v1768588020543!5m2!1sit!2sit" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Domande Frequenti</h2>
+                <p class="section-subtitle">Risposte alle domande più comuni</p>
+            </div>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>Come funziona il check-in?</h3>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Offriamo un comodo sistema di self check-in 24/7. Riceverai via email le istruzioni dettagliate e il codice per accedere alla lockbox sicura dove troverai le chiavi. Puoi arrivare in qualsiasi momento senza dover coordinare orari con noi!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>È disponibile il parcheggio?</h3>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sì! Nella zona è disponibile parcheggio gratuito su strada. In alternativa, c'è un garage convenzionato a circa 200 metri dall'appartamento con tariffa di €10 al giorno.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>Quanto dista la casa dal Colosseo?</h3>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>La casa si trova a 35 minuti dal Colosseo con i mezzi pubblici. La fermata della Metro C è a soli 5 minuti a piedi, con collegamento diretto al centro storico.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>Posso cancellare la prenotazione?</h3>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sì! La cancellazione è gratuita fino a 7 giorni prima dell'arrivo. Tra 3-7 giorni prima riceverai il 50% di rimborso. Cancellazioni entro 3 giorni non sono rimborsabili. Ti consigliamo di sottoscrivere un'assicurazione di viaggio.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>Gli animali sono ammessi?</h3>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Sì, accettiamo animali domestici di piccola taglia previo accordo. È richiesto un supplemento di €15 a notte e una pulizia extra. Contattaci prima della prenotazione per confermare.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <h3>La casa è adatta per bambini?</h3>
+                        <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            <p>Assolutamente sì! Forniamo gratuitamente un lettino per bambini e, su richiesta, un seggiolone. Abbiamo anche giochi e libri adatti ai più piccoli.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Section -->
+    <section class="social-section">
+        <div class="container">
+            <h2>Seguici sui Social</h2>
+            <p style="color: var(--text-gray); font-size: 1.1rem; margin-top: 1rem;">Resta aggiornato su offerte speciali e news</p>
+            <div class="social-icons">
+                <a href="#" class="social-icon">
+                    <div class="social-icon-img">📘</div>
+                    <div class="social-icon-text">Facebook</div>
+                </a>
+                <a href="#" class="social-icon">
+                    <div class="social-icon-img">📷</div>
+                    <div class="social-icon-text">Instagram</div>
+                </a>
+                <a href="#" class="social-icon">
+                    <div class="social-icon-img">💬</div>
+                    <div class="social-icon-text">WhatsApp</div>
+                </a>
+                <a href="#" class="social-icon">
+                    <div class="social-icon-img">✉️</div>
+                    <div class="social-icon-text">Email</div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>La Perla Nera</h3>
+                    <p>Il tuo appartamento ideale nel cuore di Roma, vicino alla Metro C e a soli 35 minuti dal Colosseo.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">📘</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="Email">✉️</a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Link Utili</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="camere.html">Camere</a></li>
+                        <li><a href="servizi.html">Servizi</a></li>
+                        <li><a href="prenotazioni.html">Prenota</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+    <h4>Privacy & Legal</h4>
+    <ul>
+        <li><a href="https://www.iubenda.com/privacy-policy/79492658" class="iubenda-white iubenda-noiframe iubenda-embed iubenda-noiframe" title="Privacy Policy">Privacy Policy</a></li>
+        <li><a href="https://www.iubenda.com/privacy-policy/79492658/cookie-policy" class="iubenda-white iubenda-noiframe iubenda-embed iubenda-noiframe" title="Cookie Policy">Cookie Policy</a></li>
+        <li><a href="#">Termini e Condizioni</a></li>
+        <li><a href="#">Politica di Cancellazione</a></li>
+        <li><a href="contatti.html">Contatti</a></li>
+    </ul>
+</div>
+                
+                <div class="footer-col">
+                    <h4>Contatti</h4>
+                    <ul class="contact-info">
+                        <li>📍 Roma, Italia</li>
+                        <li>📞 +39 3806558872</li>
+                        <li>✉️ info@claperlanera.eu</li>
+                        <li>🕐 Check-in: 24/7</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Casa Vacanza Roma. Tutti i diritti riservati.</p>
+                <p>Anche su <strong>Airbnb</strong> • <strong>Booking.com</strong></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // FAQ Toggle
+        function toggleFaq(element) {
+            const faqItem = element.parentElement;
+            const isActive = faqItem.classList.contains('active');
+            
+            // Close all FAQs
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Open clicked FAQ if it wasn't active
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+
+        // Contact Form
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('contactName').value,
+                email: document.getElementById('contactEmail').value,
+                phone: document.getElementById('contactPhone').value,
+                subject: document.getElementById('contactSubject').value,
+                dates: document.getElementById('contactDates').value,
+                message: document.getElementById('contactMessage').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // In production, send to backend API
+            console.log('Contact Form Data:', formData);
+            
+            alert(`✅ Messaggio inviato con successo!
+
+Grazie ${formData.name}, abbiamo ricevuto la tua richiesta.
+Ti risponderemo entro 24 ore all'indirizzo ${formData.email}.
+
+A presto!`);
+            
+            this.reset();
+        });
+    </script>
+</body>
+</html>

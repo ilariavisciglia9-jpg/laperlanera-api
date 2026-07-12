@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa Vacanza Roma LA PERLA NERA - Appartamento Moderno Vicino Metro C</title>
+    <meta name="description" content="Appartamento vacanza luminoso e moderno a Roma, a soli 35 minuti dal Colosseo. Vicinissimo alla Metro C, cucina completa, camere spaziose. Prenota direttamente online.">
+    <meta name="keywords" content="casa vacanza roma, appartamento roma, affitto breve roma, alloggio roma centro, metro c roma, colosseo, airbnb roma">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>LA PERLA NERA</h1>
+                <p class="tagline">La Tua Oasi nella Città Eterna</p>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="camere.html">Camere</a></li>
+                <li><a href="servizi.html">Servizi</a></li>
+                <li><a href="prenotazioni.html">Prenota Ora</a></li>
+                <li><a href="contatti.html">Contatti</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Slider with Rome Images -->
+    <section class="hero-slider">
+        <div class="slider-container">
+            <div class="slide active">
+                <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1920&q=80" alt="Colosseo Roma">
+                <div class="slide-overlay"></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=1920&q=80" alt="Fontana di Trevi">
+                <div class="slide-overlay"></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1525874684015-58379d421a52?w=1920&q=80" alt="Piazza di Spagna">
+                <div class="slide-overlay"></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1548585744-c0c8b0c1d1e8?w=1920&q=80" alt="Vaticano">
+                <div class="slide-overlay"></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1529260830199-42c24126f198?w=1920&q=80" alt="Pantheon Roma">
+                <div class="slide-overlay"></div>
+            </div>
+        </div>
+        
+        <div class="hero-content">
+            <div class="container">
+                <h1 class="hero-title">Vivi Roma Come un Locale</h1>
+                <p class="hero-subtitle">Appartamento luminoso e moderno • Metro C • 35 minuti dal Colosseo</p>
+            </div>
+        </div>
+
+        <div class="slider-controls">
+            <button class="slider-btn prev" onclick="changeSlide(-1)">‹</button>
+            <button class="slider-btn next" onclick="changeSlide(1)">›</button>
+        </div>
+        <div class="slider-indicators" id="sliderIndicators"></div>
+    </section>
+
+    <!-- Advanced Booking Filter -->
+    <section class="booking-filter">
+        <div class="container">
+            <div class="filter-card">
+                <h2>Verifica Disponibilità</h2>
+                <form class="booking-form" id="bookingForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkIn">
+                                <span class="icon">📅</span>
+                                Check-in
+                            </label>
+                            <input type="date" id="checkIn" name="checkIn" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="checkOut">
+                                <span class="icon">📅</span>
+                                Check-out
+                            </label>
+                            <input type="date" id="checkOut" name="checkOut" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="guests">
+                                <span class="icon">👥</span>
+                                Ospiti
+                            </label>
+                            <select id="guests" name="guests" required>
+                                <option value="">Seleziona</option>
+                                <option value="1">1 Ospite</option>
+                                <option value="2">2 Ospiti</option>
+                                <option value="3">3 Ospiti</option>
+                                <option value="4">4 Ospiti</option>
+                                <option value="5">5 Ospiti</option>
+                                <option value="6">6 Ospiti</option>
+                            </select>
+                        </div>
+                        
+                       <div class="form-group form-submit">
+                            <button type="submit" class="btn-primary">
+                                Cerca Disponibilità
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Property Showcase -->
+    <section class="property-showcase">
+        <div class="container">
+            <div class="showcase-grid">
+                <!-- Kitchen Feature -->
+                <div class="showcase-item">
+                    <div class="showcase-image">
+                        <img src="https://a0.muscache.com/im/pictures/hosting/Hosting-1285916612879223148/original/691a37d7-fa6b-43f2-9a79-89d99cf0c8c0.jpeg?im_w=720" alt="Cucina Moderna Completamente Attrezzata">
+                        <div class="image-badge">Cucina Completa</div>
+                    </div>
+                    <div class="showcase-content">
+                        <h2>Cucina Moderna e Luminosa</h2>
+                        <p class="showcase-highlight">La tua cucina da sogno nel cuore di Roma</p>
+                        <p>Goditi una <strong>cucina completamente attrezzata</strong> con elettrodomestici di ultima generazione, ampio piano di lavoro in marmo e tutto il necessario per preparare deliziosi pasti durante il tuo soggiorno. Luminosa e spaziosa, perfetta per colazioni romantiche o cene in famiglia.</p>
+                        <ul class="feature-list">
+                            <li>✓ Forno elettrico e microonde</li>
+                            <li>✓ Frigorifero con congelatore</li>
+                            <li>✓ Macchina per caffè e bollitore</li>
+                            <li>✓ Stoviglie e pentole complete</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Bedroom Feature -->
+                <div class="showcase-item reverse">
+                    <div class="showcase-content">
+                        <h2>Camere Spaziose e Confortevoli</h2>
+                        <p class="showcase-highlight">Riposa in comfort dopo una giornata alla scoperta di Roma</p>
+                        <p>Le nostre <strong>camere luminose e ariose</strong> offrono il massimo comfort con letti queen-size, biancheria di alta qualità e ampi armadi. Finestre ampie garantiscono luce naturale e ventilazione ottimale. Ogni camera è progettata per offrirti un riposo perfetto.</p>
+                        <ul class="feature-list">
+                            <li>✓ Letti matrimoniali di qualità</li>
+                            <li>✓ Biancheria premium inclusa</li>
+                            <li>✓ Armadi capienti</li>
+                            <li>✓ Aria condizionata</li>
+                        </ul>
+                    </div>
+                    <div class="showcase-image">
+                        <img src="https://a0.muscache.com/im/pictures/hosting/Hosting-1285916612879223148/original/3de84c2a-0901-4de1-9aac-f8db7d33c0f1.jpeg?im_w=1200" alt="Camera da Letto Spaziosa">
+                        <div class="image-badge">3 Camere</div>
+                    </div>
+                </div>
+
+                <!-- Living Room Feature -->
+                <div class="showcase-item">
+                    <div class="showcase-image">
+                        <img src="https://a0.muscache.com/im/pictures/hosting/Hosting-1285916612879223148/original/7ce57d0c-5b2c-4015-8c81-b5e181fbf5f5.jpeg?im_w=720" alt="Soggiorno Elegante">
+                        <div class="image-badge">Spazio Relax</div>
+                    </div>
+                    <div class="showcase-content">
+                        <h2>Soggiorno Luminoso e Accogliente</h2>
+                        <p class="showcase-highlight">Il tuo spazio per rilassarti e socializzare</p>
+                        <p>Un <strong>ampio soggiorno</strong> con divani confortevoli, Smart TV e ampie finestre che inondano lo spazio di luce naturale. Perfetto per rilassarsi dopo una giornata di visite turistiche o per pianificare le tue avventure romane.</p>
+                        <ul class="feature-list">
+                            <li>✓ Smart TV 55" con Netflix</li>
+                            <li>✓ Wi-Fi ultra veloce</li>
+                            <li>✓ Divano letto aggiuntivo</li>
+                            <li>✓ Libreria e giochi da tavolo</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Highlight -->
+    <section class="location-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Posizione Strategica nel Cuore di Roma</h2>
+                <p class="section-subtitle">Raggiungi facilmente le principali attrazioni della Città Eterna</p>
+            </div>
+            
+            <div class="location-grid">
+                <div class="location-card">
+                    <div class="location-icon">🚇</div>
+                    <h3>Metro C</h3>
+                    <p class="location-time">1 minuti a piedi</p>
+                    <p>Fermata metropolitana a pochi passi dall'appartamento. Collegamento diretto con il centro storico.</p>
+                </div>
+                
+                <div class="location-card highlight">
+                    <div class="location-icon">🏛️</div>
+                    <h3>Colosseo</h3>
+                    <p class="location-time">35 minuti</p>
+                    <p>Raggiungi l'iconico Colosseo in soli 35 minuti con i mezzi pubblici. Storia millenaria a portata di mano.</p>
+                </div>
+                
+                <div class="location-card">
+                    <div class="location-icon">⛪</div>
+                    <h3>Vaticano</h3>
+                    <p class="location-time">40 minuti</p>
+                    <p>Visita la Città del Vaticano e la Cappella Sistina con facilità dalla nostra posizione strategica.</p>
+                </div>
+                
+                <div class="location-card">
+                    <div class="location-icon">🍕</div>
+                    <h3>Ristoranti</h3>
+                    <p class="location-time">Zona circostante</p>
+                    <p>Numerosi ristoranti, pizzerie e trattorie tipiche romane nei dintorni.</p>
+                </div>
+                
+                <div class="location-card">
+                    <div class="location-icon">🛒</div>
+                    <h3>Supermercati</h3>
+                    <p class="location-time">2 minuti</p>
+                    <p>Supermercati, panifici e negozi di alimentari a brevissima distanza.</p>
+                </div>
+                
+                <div class="location-card">
+                    <div class="location-icon">🅿️</div>
+                    <h3>Parcheggio</h3>
+                    <p class="location-time">Parcheggio gratuito su strada.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="why-choose">
+        <div class="container">
+            <div class="section-header">
+                <h2>Perché Scegliere la Nostra Casa Vacanza</h2>
+                <p class="section-subtitle">Comfort, posizione e servizi per un soggiorno indimenticabile</p>
+            </div>
+            
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-number">01</div>
+                    <h3>Luminosa e Moderna</h3>
+                    <p>Appartamento recentemente ristrutturato con ampi spazi, luce naturale e design contemporaneo.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-number">02</div>
+                    <h3>Posizione Perfetta</h3>
+                    <p>Vicinissima alla Metro C, raggiungi il Colosseo e il centro storico in pochi minuti.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-number">03</div>
+                    <h3>Totalmente Attrezzata</h3>
+                    <p>Cucina completa, Wi-Fi veloce, Smart TV, aria condizionata e tutto il necessario per il tuo comfort.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-number">04</div>
+                    <h3>Check-in Flessibile</h3>
+                    <p>Self check-in disponibile 24/7 con lockbox sicura. Arrivi quando vuoi, senza stress.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-number">05</div>
+                    <h3>Assistenza Continua</h3>
+                    <p>Siamo sempre disponibili per qualsiasi necessità durante il tuo soggiorno.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-number">06</div>
+                    <h3>Prezzo Competitivo</h3>
+                    <p>Tariffe trasparenti senza costi nascosti. Miglior rapporto qualità-prezzo a Roma.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Pronto a Vivere Roma?</h2>
+                <p>Prenota ora e assicurati il tuo posto nella Città Eterna. Disponibilità limitata!</p>
+                <div class="cta-buttons">
+                    <a href="prenotazioni.html" class="btn-primary btn-large">Prenota Subito</a>
+                    <a href="contatti.html" class="btn-secondary btn-large">Contattaci</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>La Perla nera</h3>
+                    <p>Il tuo appartamento ideale nel cuore di Roma, vicino alla Metro C e a soli 35 minuti dal Colosseo.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Email">✉️</a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Link Utili</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="camere.html">Camere</a></li>
+                        <li><a href="servizi.html">Servizi</a></li>
+                        <li><a href="prenotazioni.html">Prenota</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Informazioni</h4>
+                    <ul>
+                        <li><a href="#">Termini e Condizioni</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Politica di Cancellazione</a></li>
+                        <li><a href="contatti.html">Contatti</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Contatti</h4>
+                    <ul class="contact-info">
+                        <li>📍 Roma, Italia</li>
+                        <li>📞 +39 3806558872</li>
+                        <li>✉️ info@laperlanera.eu</li>
+                        <li>🕐 Check-in: 24/7</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 La perla nera Roma. Tutti i diritti riservati.</p>
+                <p>Anche su <strong>Airbnb</strong> • <strong>Booking.com</strong></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

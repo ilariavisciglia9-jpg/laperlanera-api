@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camere - Casa Vacanza Roma | Ambienti Luminosi e Spaziosi</title>
+    <meta name="description" content="Scopri le nostre camere spaziose e luminose. 3 camere da letto completamente arredate, bagno moderno, cucina attrezzata. Casa vacanza ideale per famiglie e gruppi a Roma.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, var(--cobalt-blue), var(--dark-cobalt));
+            padding: 8rem 0 4rem;
+            text-align: center;
+            color: var(--bg-white);
+        }
+
+        .page-header h1 {
+            color: var(--bg-white);
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .rooms-section {
+            padding: 5rem 0;
+        }
+
+        .room-card {
+            background: var(--bg-white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px var(--shadow);
+            margin-bottom: 4rem;
+            transition: var(--transition);
+        }
+
+        .room-card:hover {
+            box-shadow: 0 15px 60px rgba(0, 71, 171, 0.2);
+        }
+
+        .room-gallery {
+            position: relative;
+            height: 800px;
+            overflow: hidden;
+        }
+
+        .room-gallery img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .room-card:hover .room-gallery img {
+            transform: scale(1.05);
+        }
+
+        .room-details {
+            padding: 3rem;
+        }
+
+        .room-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .room-price {
+            background: var(--gold-accent);
+            color: var(--bg-white);
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .room-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .room-feature {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+
+        .room-feature-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .room-feature-text h4 {
+            color: var(--cobalt-blue);
+            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+        }
+
+        .room-feature-text p {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .amenity-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem;
+            background: var(--bg-white);
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .overview-section {
+            background: var(--bg-light);
+            padding: 4rem 0;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .overview-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid var(--cobalt-blue);
+        }
+
+        .overview-card h3 {
+            font-size: 3rem;
+            color: var(--cobalt-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .overview-card p {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>La Perla nera</h1>
+                <p class="tagline">La Tua Oasi nella Città Eterna</p>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="camere.html" class="active">Camere</a></li>
+                <li><a href="servizi.html">Servizi</a></li>
+                <li><a href="prenotazioni.html">Prenota Ora</a></li>
+                <li><a href="contatti.html">Contatti</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Le Nostre Camere</h1>
+            <p>Ambienti luminosi, spaziosi e completamente arredati per il massimo comfort durante il tuo soggiorno a Roma</p>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section class="overview-section">
+        <div class="container">
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <h3>2</h3>
+                    <p>Camere da Letto</p>
+                </div>
+                <div class="overview-card">
+                    <h3>6</h3>
+                    <p>Posti Letto</p>
+                </div>
+                <div class="overview-card">
+                    <h3>1</h3>
+                    <p>Bagni Completi</p>
+                </div>
+                <div class="overview-card">
+                    <h3>60m²</h3>
+                    <p>Superficie Totale</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rooms Section -->
+    <section class="rooms-section">
+        <div class="container">
+            <!-- Camera Matrimoniale 1 -->
+            <div class="room-card">
+                <div class="room-gallery">
+                    <img src="https://a0.muscache.com/im/pictures/hosting/Hosting-1285916612879223148/original/1eac1d0a-1b2d-4f3e-bda6-ff5ec0cbf24f.jpeg?im_w=1200" alt="Camera Matrimoniale Principale">
+                </div>
+                <div class="room-details">
+                    <div class="room-title">
+                        <h2>Camera Matrimoniale Principale</h2>
+                    </div>
+                    <p>La camera principale offre un'atmosfera elegante e rilassante con un grande letto matrimoniale queen-size, ampi armadi a muro e una splendida vista sulla città. Progettata per garantire il massimo comfort e privacy, questa camera è l'ideale per coppie che cercano un rifugio tranquillo nel cuore di Roma.</p>
+                    
+                    <div class="room-features">
+                        <div class="room-feature">
+                            <div class="room-feature-icon">🛏️</div>
+                            <div class="room-feature-text">
+                                <h4>Letto Queen-Size</h4>
+                                <p>190x160, materasso ortopedico</p>
+                            </div>
+                        </div>
+                        <div class="room-feature">
+                            <div class="room-feature-icon">🪟</div>
+                            <div class="room-feature-text">
+                                <h4>Finestre Ampie</h4>
+                                <p>Luce naturale tutto il giorno</p>
+                            </div>
+                        </div>
+                        <div class="room-feature">
+                            <div class="room-feature-icon">👔</div>
+                            <div class="room-feature-text">
+                                <h4>Armadio Capiente</h4>
+                                <p>Spazio per tutti i tuoi vestiti</p>
+                            </div>
+                        </div>
+                        <div class="room-feature">
+                            <div class="room-feature-icon">❄️</div>
+                            <div class="room-feature-text">
+                                <h4>Aria Condizionata</h4>
+                                <p>Clima controllato individuale</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Servizi Inclusi</h3>
+                    <div class="amenities-grid">
+                        <div class="amenity-item">✓ Biancheria da letto premium</div>
+                        <div class="amenity-item">✓ Asciugamani forniti</div>
+                        <div class="amenity-item">✓ Appendiabiti multipli</div>
+                        <div class="amenity-item">✓ Comodini con lampade</div>
+                        <div class="amenity-item">✓ Tende oscuranti</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Matrimoniale 2 -->
+            <div class="room-card">
+                <div class="room-gallery">
+                    <img src="https://a0.muscache.com/im/pictures/hosting/Hosting-1285916612879223148/original/cf8b5b8f-9173-4de0-bcba-9dbd92bf2561.jpeg?im_w=1200" alt="Camera Matrimoniale Secondaria">
+                </div>
+                <div class="room-details">
+                    <div class="room-title">
+                        <h2>Camera Secondaria</h2>
+                    </div>
+                    <p>Una camera luminosa e accogliente con due letti singoli, perfetti per coppie o famiglie con bambini. Dotata di tutti i comfort moderni, questa camera offre un ambiente tranquillo per riposare dopo una giornata di esplorazioni romane. L'arredamento elegante crea un'atmosfera calda e invitante.</p>
+                    
+                    <div class="room-features">
+                        <div class="room-feature">
+                            <div class="room-feature-icon">🛏️</div>
+                            <div class="room-feature-text">
+                                <h4>Letti Singoli</h4>
+                                <p>190x80, materassi comfort</p>
+                            </div>
+                        </div>
+                        
+                        <div class="room-feature">
+                            <div class="room-feature-icon">📺</div>
+                            <div class="room-feature-text">
+                                <h4>Smart TV</h4>
+                                <p>32" con Netflix e streaming</p>
+                            </div>
+                        </div>
+                        <div class="room-feature">
+                            <div class="room-feature-icon">🌡️</div>
+                            <div class="room-feature-text">
+                                <h4>Climatizzata</h4>
+                                <p>Riscaldamento e raffrescamento</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Servizi Inclusi</h3>
+                    <div class="amenities-grid">
+                        <div class="amenity-item">✓ Biancheria da letto</div>
+                        <div class="amenity-item">✓ Set asciugamani</div>
+                        <div class="amenity-item">✓ Armadio guardaroba</div>
+                        <div class="amenity-item">✓ Illuminazione regolabile</div>
+                        <div class="amenity-item">✓ Prese USB</div>
+                        <div class="amenity-item">✓ Wi-Fi ad alta velocità</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Bagni -->
+            <div class="room-card">
+                <div class="room-gallery">
+                    <img src="https://a0.muscache.com/im/pictures/hosting/Hosting-1285916612879223148/original/02b6434a-2709-44c1-915c-a75661bba2c9.jpeg?im_w=1200" alt="Bagno Moderno">
+                </div>
+                <div class="room-details">
+                    <div class="room-title">
+                        <h2>Bagno Moderno</h2>
+                    </div>
+                    <p>L'appartamento dispone di <strong>due bagni completi</strong>, recentemente ristrutturati con finiture moderne e di alta qualità. Ogni bagno è dotato di doccia spaziosa, lavandino, WC e specchio illuminato. La ventilazione ottimale garantisce un ambiente sempre fresco e asciutto.</p>
+                    
+                    <div class="room-features">
+                        <div class="room-feature">
+                            <div class="room-feature-icon">🚿</div>
+                            <div class="room-feature-text">
+                                <h4>Doccia Moderna</h4>
+                                <p>Box doccia</p>
+                            </div>
+                        </div>
+                        <div class="room-feature">
+                            <div class="room-feature-icon">💧</div>
+                            <div class="room-feature-text">
+                                <h4>Acqua Calda</h4>
+                                <p>Sempre disponibile, caldaia efficiente</p>
+                            </div>
+                        </div>
+                        <div class="room-feature">
+                            <div class="room-feature-icon">🌬️</div>
+                            <div class="room-feature-text">
+                                <h4>Ventilazione</h4>
+                                <p>Sistema di aerazione automatico</p>
+                            </div>
+                        </div>
+                        <div class="room-feature">
+                            <div class="room-feature-icon">🧴</div>
+                            <div class="room-feature-text">
+                                <h4>Cortesia Inclusa</h4>
+                                <p>Shampoo, bagnoschiuma, sapone</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Accessori Bagno</h3>
+                    <div class="amenities-grid">
+                        <div class="amenity-item">✓ Asciugacapelli</div>
+                        <div class="amenity-item">✓ Set asciugamani</div>
+                        <div class="amenity-item">✓ Tappetino bagno</div>
+                        <div class="amenity-item">✓ Carta igienica extra</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ti Piacciono le Nostre Camere?</h2>
+                <p>Prenota ora e assicurati il miglior prezzo per il tuo soggiorno a Roma!</p>
+                <div class="cta-buttons">
+                    <a href="prenotazioni.html" class="btn-primary btn-large">Prenota Adesso</a>
+                    <a href="contatti.html" class="btn-secondary btn-large">Richiedi Info</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>La perla nera</h3>
+                    <p>Il tuo appartamento ideale nel cuore di Roma, vicino alla Metro C e a soli 35 minuti dal Colosseo.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">📘</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="Email">✉️</a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Link Utili</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="camere.html">Camere</a></li>
+                        <li><a href="servizi.html">Servizi</a></li>
+                        <li><a href="prenotazioni.html">Prenota</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Informazioni</h4>
+                    <ul>
+                        <li><a href="#">Termini e Condizioni</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Politica di Cancellazione</a></li>
+                        <li><a href="contatti.html">Contatti</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Contatti</h4>
+                    <ul class="contact-info">
+                        <li>📍 Roma, Italia</li>
+                        <li>📞 +39 3806558872</li>
+                        <li>✉️ info@laperlanera.eu</li>
+                        <li>🕐 Check-in: 24/7</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Casa Vacanza Roma. Tutti i diritti riservati.</p>
+                <p>Anche su <strong>Airbnb</strong> • <strong>Booking.com</strong></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

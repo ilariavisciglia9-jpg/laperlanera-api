@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servizi - Casa Vacanza Roma | Comfort e Connettività</title>
+    <meta name="description" content="Tutti i servizi della nostra casa vacanza: Wi-Fi veloce, Smart TV, cucina completa, aria condizionata, lavatrice, parcheggio. Comfort moderno nel cuore di Roma.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .services-hero {
+            background: linear-gradient(135deg, var(--cobalt-blue), var(--dark-cobalt));
+            padding: 8rem 0 4rem;
+            text-align: center;
+            color: var(--bg-white);
+        }
+
+        .services-hero h1 {
+            color: var(--bg-white);
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .services-hero p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .services-section {
+            padding: 5rem 0;
+        }
+
+        .services-category {
+            margin-bottom: 5rem;
+        }
+
+        .category-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .category-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px var(--shadow);
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 40px rgba(0, 71, 171, 0.2);
+            border-color: var(--cobalt-blue);
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .service-card h3 {
+            color: var(--cobalt-blue);
+            margin-bottom: 0.8rem;
+        }
+
+        .service-card p {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+        }
+
+        .features-highlight {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 4rem 0;
+            margin: 4rem 0;
+        }
+
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-white);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-check {
+            color: var(--cobalt-blue);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .rules-section {
+            background: var(--bg-light);
+            padding: 4rem 0;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .rule-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 15px;
+            border-left: 4px solid var(--cobalt-blue);
+        }
+
+        .rule-card h3 {
+            color: var(--cobalt-blue);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .rule-icon {
+            font-size: 2rem;
+        }
+
+        .rule-list {
+            list-style: none;
+        }
+
+        .rule-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-gray);
+        }
+
+        .rule-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--cobalt-blue);
+            font-weight: bold;
+        }
+
+        .nearby-section {
+            padding: 4rem 0;
+        }
+
+        .nearby-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .nearby-card {
+            background: linear-gradient(135deg, var(--bg-white), var(--bg-light));
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px var(--shadow);
+        }
+
+        .nearby-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .distance {
+            background: var(--gold-accent);
+            color: var(--bg-white);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>La Perla Nera</h1>
+                <p class="tagline">La Tua Oasi nella Città Eterna</p>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="camere.html">Camere</a></li>
+                <li><a href="servizi.html" class="active">Servizi</a></li>
+                <li><a href="prenotazioni.html">Prenota Ora</a></li>
+                <li><a href="contatti.html">Contatti</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="services-hero">
+        <div class="container">
+            <h1>Servizi e Comfort</h1>
+            <p>Tutto ciò di cui hai bisogno per un soggiorno perfetto a Roma</p>
+        </div>
+    </section>
+
+    <!-- Main Services -->
+    <section class="services-section">
+        <div class="container">
+            <!-- Technology & Entertainment -->
+            <div class="services-category">
+                <div class="category-header">
+                    <div class="category-icon">📱</div>
+                    <h2>Tecnologia e Intrattenimento</h2>
+                </div>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <span class="service-icon">📶</span>
+                        <h3>Wi-Fi Ultra Veloce</h3>
+                        <p>Connessione in fibra ottica 100 Mbps in tutta la casa. Perfetta per smart working, streaming e videochiamate.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">📺</span>
+                        <h3>Smart TV</h3>
+                        <p>TV 55" con Netflix, Prime Video, Disney+ e tutte le principali piattaforme streaming già configurate.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">🔌</span>
+                        <h3>Prese USB</h3>
+                        <p>Prese USB in ogni camera per ricaricare comodamente tutti i tuoi dispositivi.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kitchen & Dining -->
+            <div class="services-category">
+                <div class="category-header">
+                    <div class="category-icon">🍳</div>
+                    <h2>Cucina Completamente Attrezzata</h2>
+                </div>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <span class="service-icon">🔥</span>
+                        <h3>Elettrodomestici Moderni</h3>
+                        <p>Forno, microonde, frigorifero con congelatore, lavastoviglie e piano cottura a induzione.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">☕</span>
+                        <h3>Caffè & Colazione</h3>
+                        <p>Macchina per caffè espresso, bollitore elettrico, tostapane e spremiagrumi.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comfort & Climate -->
+            <div class="services-category">
+                <div class="category-header">
+                    <div class="category-icon">❄️</div>
+                    <h2>Comfort e Clima</h2>
+                </div>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <span class="service-icon">🌡️</span>
+                        <h3>Aria Condizionata</h3>
+                        <p>Sistema di climatizzazione in ogni camera con controllo individuale della temperatura.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">🔥</span>
+                        <h3>Riscaldamento</h3>
+                        <p>Riscaldamento centralizzato efficiente per i mesi invernali.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">💨</span>
+                        <h3>Ventilatori</h3>
+                        <p>Ventilatori da soffitto e portatili disponibili per una ventilazione ottimale.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bathroom & Laundry -->
+            <div class="services-category">
+                <div class="category-header">
+                    <div class="category-icon">🛁</div>
+                    <h2>Bagno e Lavanderia</h2>
+                </div>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <span class="service-icon">🚿</span>
+                        <h3>Bagni Moderni</h3>
+                        <p>Due bagni completi con docce spaziose, asciugacapelli e set cortesia inclusi.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">🧺</span>
+                        <h3>Stendino</h3>
+                        <p>Stendino pieghevole e ferro da stiro con asse disponibili.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">🧴</span>
+                        <h3>Prodotti da Bagno</h3>
+                        <p>Shampoo, bagnoschiuma, sapone per le mani e carta igienica di qualità.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety & Security -->
+            <div class="services-category">
+                <div class="category-header">
+                    <div class="category-icon">🔒</div>
+                    <h2>Sicurezza e Tranquillità</h2>
+                </div>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <span class="service-icon">🚪</span>
+                        <h3>Check-in Autonomo</h3>
+                        <p>Lockbox sicura per check-in 24/7 senza appuntamento. Codici inviati via email.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">🔐</span>
+                        <h3>Porta Blindata</h3>
+                        <p>Porta d'ingresso blindata con serratura di sicurezza multipunto.</p>
+                    </div>
+                    <div class="service-card">
+                        <span class="service-icon">🩹</span>
+                        <h3>Kit di Primo Soccorso</h3>
+                        <p>Kit completo di primo soccorso facilmente accessibile nell'appartamento.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- All Features Highlight -->
+    <section class="features-highlight">
+        <div class="container">
+            <div class="section-header">
+                <h2>Tutto Incluso nel Tuo Soggiorno</h2>
+            </div>
+            <div class="features-list">
+                <div class="feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Biancheria da letto premium</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Set completo asciugamani</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Pulizia professionale</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Parcheggio gratuito su strada</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-check">✓</span>
+                    <span>Guida locale di Roma</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- House Rules -->
+    <section class="rules-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Regole della Casa</h2>
+                <p class="section-subtitle">Per garantire un soggiorno piacevole a tutti</p>
+            </div>
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <h3><span class="rule-icon">🕐</span> Check-in / Check-out</h3>
+                    <ul class="rule-list">
+                        <li>Check-in: dalle 15:00 (flessibile)</li>
+                        <li>Check-out: entro le 10:00</li>
+                        <li>Check-in/out anticipato su richiesta</li>
+                    </ul>
+                </div>
+                <div class="rule-card">
+                    <h3><span class="rule-icon">🚭</span> Non Fumatori</h3>
+                    <ul class="rule-list">
+                        <li>Vietato fumare all'interno</li>
+                        <li>Multe per trasgressioni: €150</li>
+                    </ul>
+                </div>
+                <div class="rule-card">
+                    <h3><span class="rule-icon">🐕</span> Animali</h3>
+                    <ul class="rule-list">
+                        <li>Animali ammessi su richiesta</li>
+                        <li>Supplemento: €15/notte</li>
+                        <li>Massimo 1 animale di piccola taglia</li>
+                        <li>Pulizia extra richiesta</li>
+                    </ul>
+                </div>
+                <div class="rule-card">
+                    <h3><span class="rule-icon">🎉</span> Eventi e Feste</h3>
+                    <ul class="rule-list">
+                        <li>Nessuna festa consentita</li>
+                        <li>Rispetta gli orari di silenzio (22:00-08:00)</li>
+                        <li>Massima capienza: 6 persone</li>
+                        <li>Rispetta i vicini</li>
+                    </ul>
+                </div>
+                <div class="rule-card">
+                    <h3><span class="rule-icon">👶</span> Famiglie con Bambini</h3>
+                    <ul class="rule-list">
+                        <li>I bambini sono i benvenuti</li>
+                        <li>Giochi e libri per bambini</li>
+                    </ul>
+                </div>
+                <div class="rule-card">
+                    <h3><span class="rule-icon">🧹</span> Pulizia</h3>
+                    <ul class="rule-list">
+                        <li>Lascia la casa in ordine</li>
+                        <li>Getta la spazzatura</li>
+                        <li>Pulizia finale inclusa</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nearby Services -->
+    <section class="nearby-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Servizi nelle Vicinanze</h2>
+                <p class="section-subtitle">Tutto ciò di cui hai bisogno a pochi passi</p>
+            </div>
+            <div class="nearby-grid">
+                <div class="nearby-card">
+                    <h3>
+                        <span>🚇 Metro C</span>
+                        <span class="distance">5 min</span>
+                    </h3>
+                    <p>Fermata Gardenie - collegamento diretto con il centro e le principali attrazioni turistiche.</p>
+                </div>
+                <div class="nearby-card">
+                    <h3>
+                        <span>🛒 Supermercato</span>
+                        <span class="distance">2 min</span>
+                    </h3>
+                    <p>Conad City aperto 7/7. Anche Lidl ed Eurospin nelle vicinanze.</p>
+                </div>
+                <div class="nearby-card">
+                    <h3>
+                        <span>🍕 Ristoranti</span>
+                        <span class="distance">Zona</span>
+                    </h3>
+                    <p>Numerose pizzerie, trattorie e ristoranti tipici romani a 5-10 minuti a piedi.</p>
+                </div>
+                <div class="nearby-card">
+                    <h3>
+                        <span>💊 Farmacia</span>
+                        <span class="distance">3 min</span>
+                    </h3>
+                    <p>Farmacia con orario continuato. Guardia medica disponibile H24.</p>
+                </div>
+                <div class="nearby-card">
+                    <h3>
+                        <span>🏦 Banca/ATM</span>
+                        <span class="distance">5 min</span>
+                    </h3>
+                    <p>Sportelli Bancomat e filiali bancarie facilmente raggiungibili.</p>
+                </div>
+                <div class="nearby-card">
+                    <h3>
+                        <span>🅿️ Parcheggio</span>
+                        <span class="distance">Gratuito</span>
+                    </h3>
+                    <p>Parcheggio su strada gratuito.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Tutti i Comfort che Cerchi</h2>
+                <p>Prenota ora e goditi un soggiorno perfetto con tutti i servizi inclusi!</p>
+                <div class="cta-buttons">
+                    <a href="prenotazioni.html" class="btn-primary btn-large">Prenota Subito</a>
+                    <a href="contatti.html" class="btn-secondary btn-large">Contattaci</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>La Perla Nera</h3>
+                    <p>Il tuo appartamento ideale nel cuore di Roma, vicino alla Metro C e a soli 35 minuti dal Colosseo.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Email">✉️</a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Link Utili</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="camere.html">Camere</a></li>
+                        <li><a href="servizi.html">Servizi</a></li>
+                        <li><a href="prenotazioni.html">Prenota</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Informazioni</h4>
+                    <ul>
+                        <li><a href="#">Termini e Condizioni</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Politica di Cancellazione</a></li>
+                        <li><a href="contatti.html">Contatti</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Contatti</h4>
+                    <ul class="contact-info">
+                        <li>📍 Roma, Italia</li>
+                        <li>📞 +39 3806558872</li>
+                        <li>✉️ info@laperlanera.eu</li>
+                        <li>🕐 Check-in: 24/7</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 La Perla Nera. Tutti i diritti riservati.</p>
+                <p>Anche su <strong>Airbnb</strong> • <strong>Booking.com</strong></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

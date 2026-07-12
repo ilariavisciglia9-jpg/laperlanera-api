@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prenota Ora - La Perla Nera | Prenotazione Diretta Online</title>
+    <meta name="description" content="Prenota direttamente la tua casa vacanza a Roma. Disponibilità in tempo reale, calendario sincronizzato con Airbnb e Booking.com. Miglior prezzo garantito!">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .booking-page {
+            padding: 8rem 0 2rem;
+            background: var(--bg-light);
+        }
+
+        .booking-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .booking-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .booking-header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .booking-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .booking-main {
+            background: var(--bg-white);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+        }
+
+        .booking-summary {
+            background: var(--bg-white);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            position: sticky;
+            top: 100px;
+        }
+
+        .form-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .form-section h3 {
+            color: var(--cobalt-blue);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--cobalt-blue);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .calendar-widget {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-widget h4 {
+            color: var(--cobalt-blue);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .calendar {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-header h5 {
+            color: var(--cobalt-blue);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .calendar-nav button {
+            background: var(--cobalt-blue);
+            color: var(--bg-white);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .calendar-nav button:hover {
+            background: var(--dark-cobalt);
+            transform: scale(1.1);
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            text-align: center;
+        }
+
+        .calendar-day-name {
+            font-weight: 600;
+            color: var(--cobalt-blue);
+            padding: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .calendar-day {
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .calendar-day:hover:not(.disabled):not(.booked) {
+            background: rgba(0, 71, 171, 0.1);
+        }
+
+        .calendar-day.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.booked {
+            background: #ffebee;
+            color: #c62828;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.selected {
+            background: var(--cobalt-blue);
+            color: var(--bg-white);
+            font-weight: 600;
+        }
+
+        .calendar-day.in-range {
+            background: rgba(0, 71, 171, 0.2);
+        }
+
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+
+        .legend-color.available {
+            background: var(--bg-white);
+            border: 2px solid #ddd;
+        }
+
+        .legend-color.selected {
+            background: var(--cobalt-blue);
+        }
+
+        .legend-color.booked {
+            background: #ffebee;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            border-top: 2px solid var(--cobalt-blue);
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding-top: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .price-breakdown {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        .cancellation-policy {
+            background: #e3f2fd;
+            border-left: 4px solid var(--cobalt-blue);
+            padding: 1rem 1.5rem;
+            margin: 2rem 0;
+            border-radius: 5px;
+        }
+
+        .cancellation-policy h4 {
+            color: var(--cobalt-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .cancellation-policy p {
+            font-size: 0.9rem;
+            margin: 0.3rem 0;
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .payment-method {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .payment-method:hover {
+            border-color: var(--cobalt-blue);
+        }
+
+        .payment-method.selected {
+            border-color: var(--cobalt-blue);
+            background: rgba(0, 71, 171, 0.05);
+        }
+
+        .airbnb-sync {
+            background: linear-gradient(135deg, #FF5A5F 0%, #FF385C 100%);
+            color: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .airbnb-sync h4 {
+            color: var(--bg-white);
+            margin-bottom: 0.5rem;
+        }
+
+        .airbnb-sync p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .checkbox-group input {
+            margin-top: 0.3rem;
+            width: 18px;
+            height: 18px;
+        }
+
+        .checkbox-group label {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* RESPONSIVE STYLES */
+        @media (max-width: 1024px) {
+            .booking-header h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 968px) {
+            .booking-page {
+                padding: 6rem 0 2rem;
+            }
+
+            .booking-container {
+                padding: 0 1rem;
+            }
+
+            .booking-header h1 {
+                font-size: 2rem;
+            }
+
+            .booking-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-summary {
+                position: static;
+                order: -1;
+                margin-bottom: 2rem;
+            }
+
+            .booking-main,
+            .booking-summary {
+                padding: 1.5rem;
+            }
+
+            .calendar-widget {
+                padding: 1.5rem;
+            }
+
+            .calendar {
+                padding: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .booking-page {
+                padding: 5rem 0 1rem;
+            }
+
+            .booking-container {
+                padding: 0 0.75rem;
+            }
+
+            .booking-header {
+                margin-bottom: 2rem;
+            }
+
+            .booking-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .booking-header p {
+                font-size: 0.9rem;
+            }
+
+            .booking-main,
+            .booking-summary {
+                padding: 1rem;
+                border-radius: 15px;
+            }
+
+            .calendar-widget {
+                padding: 1rem;
+            }
+
+            .calendar {
+                padding: 0.75rem;
+            }
+
+            .calendar-header h5 {
+                font-size: 1rem;
+            }
+
+            .calendar-nav button {
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
+
+            .calendar-day {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            .calendar-day-name {
+                font-size: 0.75rem;
+                padding: 0.3rem;
+            }
+
+            .calendar-legend {
+                gap: 1rem;
+                font-size: 0.75rem;
+            }
+
+            .legend-color {
+                width: 15px;
+                height: 15px;
+            }
+
+            .form-section {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-section h3 {
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+            }
+
+            .payment-methods {
+                flex-direction: column;
+            }
+
+            .payment-method {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .price-breakdown {
+                padding: 1rem;
+            }
+
+            .cancellation-policy {
+                padding: 0.75rem 1rem;
+            }
+
+            .summary-row {
+                font-size: 0.9rem;
+            }
+
+            .summary-row:last-child {
+                font-size: 1rem;
+            }
+
+            #priceTotal {
+                font-size: 1.25rem !important;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .booking-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .calendar-days {
+                gap: 0.25rem;
+            }
+
+            .calendar-day {
+                padding: 0.4rem;
+                font-size: 0.75rem;
+            }
+
+            .calendar-day-name {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>La Perla Nera</h1>
+                <p class="tagline">La Tua Oasi nella Città Eterna</p>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="camere.html">Camere</a></li>
+                <li><a href="servizi.html">Servizi</a></li>
+                <li><a href="prenotazioni.html" class="active">Prenota Ora</a></li>
+                <li><a href="contatti.html">Contatti</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Booking Page -->
+    <section class="booking-page">
+        <div class="booking-container">
+            <div class="booking-header">
+                <h1>Prenota il Tuo Soggiorno</h1>
+                <p>Completa il form per prenotare direttamente. Miglior prezzo garantito!</p>
+            </div>
+
+            <div class="booking-grid">
+                <!-- Booking Summary - Mobile First -->
+                <div class="booking-summary">
+                    <h3>Riepilogo Prenotazione</h3>
+                    
+                    <div class="summary-row">
+                        <span>Check-in:</span>
+                        <strong id="summaryCheckIn">Seleziona date</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Check-out:</span>
+                        <strong id="summaryCheckOut">Seleziona date</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Notti:</span>
+                        <strong id="summaryNights">0</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Ospiti:</span>
+                        <strong id="summaryGuests">2 adulti</strong>
+                    </div>
+
+                    <div class="price-breakdown">
+                        <h4 style="color: var(--cobalt-blue); margin-bottom: 1rem;">Dettaglio Prezzi</h4>
+                        <div class="price-row">
+                            <span>€75 x <span id="priceNights">0</span> notti</span>
+                            <strong id="priceSubtotal">€0</strong>
+                        </div>
+                        <div class="price-row">
+                            <span>Tassa di pulizia</span>
+                            <strong>€50</strong>
+                        </div>
+                        <div class="price-row">
+                            <span>Tassa di soggiorno</span>
+                            <strong id="priceTax">€0</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Totale</span>
+                        <strong id="priceTotal" style="color: var(--cobalt-blue); font-size: 1.5rem;">€0</strong>
+                    </div>
+
+                    <div class="cancellation-policy">
+                        <h4>📋 Politica di Cancellazione</h4>
+                        <p><strong>Gratuita</strong> fino a 7 giorni prima</p>
+                        <p><strong>50% di rimborso</strong> 3-7 giorni prima</p>
+                        <p><strong>Nessun rimborso</strong> entro 3 giorni</p>
+                    </div>
+
+                    <p style="font-size: 0.85rem; color: var(--text-gray); text-align: center; margin-top: 1rem;">
+                        🔒 Prenotazione sicura e protetta
+                    </p>
+                </div>
+
+                <!-- Main Booking Form -->
+                <div class="booking-main">
+                    <!-- Calendar Widget -->
+                    <div class="calendar-widget">
+                        <h4>Seleziona le Date</h4>
+                        <div class="calendar">
+                            <div class="calendar-header">
+                                <h5 id="currentMonth">Gennaio 2026</h5>
+                                <div class="calendar-nav">
+                                    <button onclick="previousMonth()">‹</button>
+                                    <button onclick="nextMonth()">›</button>
+                                </div>
+                            </div>
+                            <div class="calendar-days" id="calendarDays">
+                                <!-- Generated by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="calendar-legend">
+                            <div class="legend-item">
+                                <div class="legend-color available"></div>
+                                <span>Disponibile</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color selected"></div>
+                                <span>Selezionata</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color booked"></div>
+                                <span>Non disponibile</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="completeBookingForm">
+                        <!-- Guest Information -->
+                        <div class="form-section">
+                            <h3>Informazioni Ospite</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="firstName">Nome *</label>
+                                    <input type="text" id="firstName" name="firstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Cognome *</label>
+                                    <input type="text" id="lastName" name="lastName" required>
+                                </div>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="email">Email *</label>
+                                    <input type="email" id="email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Telefono *</label>
+                                    <input type="tel" id="phone" name="phone" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="country">Paese di Residenza *</label>
+                                <input type="text" id="country" name="country" required>
+                            </div>
+                        </div>
+
+                        <!-- Guest Details -->
+                        <div class="form-section">
+                            <h3>Dettagli Soggiorno</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="adults">Adulti *</label>
+                                    <select id="adults" name="adults" required>
+                                        <option value="1">1 Adulto</option>
+                                        <option value="2" selected>2 Adulti</option>
+                                        <option value="3">3 Adulti</option>
+                                        <option value="4">4 Adulti</option>
+                                        <option value="5">5 Adulti</option>
+                                        <option value="6">6 Adulti</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="children">Bambini</label>
+                                    <select id="children" name="children">
+                                        <option value="0" selected>Nessuno</option>
+                                        <option value="1">1 Bambino</option>
+                                        <option value="2">2 Bambini</option>
+                                        <option value="3">3 Bambini</option>
+                                        <option value="4">4 Bambini</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="arrivalTime">Orario di Arrivo Stimato</label>
+                                <select id="arrivalTime" name="arrivalTime">
+                                    <option value="">Seleziona orario</option>
+                                    <option value="morning">Mattina (08:00-12:00)</option>
+                                    <option value="afternoon">Pomeriggio (12:00-18:00)</option>
+                                    <option value="evening">Sera (18:00-22:00)</option>
+                                    <option value="night">Notte (22:00-01:00)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="specialRequests">Richieste Speciali</label>
+                                <textarea id="specialRequests" name="specialRequests" rows="4" placeholder="Comunicaci eventuali esigenze particolari..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="form-section">
+                            <h3>Metodo di Pagamento</h3>
+                            <div class="payment-methods">
+                                <label class="payment-method selected">
+                                    <input type="radio" name="payment" value="card" checked hidden>
+                                    💳 Carta di Credito
+                                </label>
+                                <label class="payment-method">
+                                    <input type="radio" name="payment" value="paypal" hidden>
+                                    💰 PayPal
+                                </label>
+                                <label class="payment-method">
+                                    <input type="radio" name="payment" value="transfer" hidden>
+                                    🏦 Bonifico
+                                </label>
+                            </div>
+
+
+                            <!-- Sezione bonifico -->
+                            <div id="transfer-info" style="margin-top:20px; display:none; background:#f9f9f9; padding:15px; border:1px solid #ddd;">
+                                <strong>Istruzioni Bonifico:</strong><br><br>
+                                Intestatario: <strong>La Perla Nera</strong><br>
+                                IBAN: <strong>IT60X0542404294000000123456</strong><br>
+                                Causale: <strong>Prenotazione [Nome] - [Date]</strong><br><br>
+                                ⚠️ Effettua il bonifico entro 48 ore per confermare.
+                            </div>
+                        </div>
+                        
+
+                        <!-- Terms and Conditions -->
+                        <div class="form-section">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="terms" name="terms" required>
+                                <label for="terms">Accetto i <a href="#" style="color: var(--cobalt-blue);">Termini e Condizioni</a> e la <a href="#" style="color: var(--cobalt-blue);">Privacy Policy</a> *</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="newsletter" name="newsletter">
+                                <label for="newsletter">Desidero ricevere offerte e aggiornamenti via email</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-large" style="width: 100%;">
+                            Conferma Prenotazione
+                        </button>
+                    </form>
+
+                    <!-- Form Stripe Payment Element - appare dopo aver cliccato Conferma -->
+                    <div id="payment-element-container" style="display:none; margin-top: 20px;">
+                        <p style="color: var(--cobalt-blue); font-weight: 600; margin-bottom: 10px;">💳 Inserisci i dati di pagamento:</p>
+                        <div id="payment-element"></div>
+                        <div id="payment-errors" style="color:#8B0000; font-size:14px; margin-top:10px;"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Casa Vacanza Roma</h3>
+                    <p>Il tuo appartamento ideale nel cuore di Roma, vicino alla Metro C e a soli 35 minuti dal Colosseo.</p>
+                    <div class="social-links">
+                        <a href="info@laperlanera.eu" aria-label="Email">✉️</a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Link Utili</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="camere.html">Camere</a></li>
+                        <li><a href="servizi.html">Servizi</a></li>
+                        <li><a href="prenotazioni.html">Prenota</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Informazioni</h4>
+                    <ul>
+                        <li><a href="#">Termini e Condizioni</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Politica di Cancellazione</a></li>
+                        <li><a href="contatti.html">Contatti</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Contatti</h4>
+                    <ul class="contact-info">
+                        <li>📍 Roma, Italia</li>
+                        <li>📞 +39 3806558872</li>
+                        <li>✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="127b7c747d527e736277607e737c7760733c7767">[email&#160;protected]</a></li>
+                        <li>🕐 Check-in: 24/7</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 La Perla Nera. Tutti i diritti riservati.</p>
+                <p>Anche su <strong>Airbnb</strong> • <strong>Booking.com</strong></p>
+            </div>
+        </div>
+    </footer>
+
+<script src="https://js.stripe.com/v3/"></script>
+    <script src="booking_FINALE.js"></script>
+   </body>
+</html>
