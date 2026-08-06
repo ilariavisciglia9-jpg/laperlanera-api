@@ -326,13 +326,16 @@ function nextMonth() {
 // ===========================
 // PAYMENT METHOD SELECTION
 // ===========================
-document.querySelectorAll('.payment-method').forEach(method => {
-    method.addEventListener('click', function() {
-        document.querySelectorAll('.payment-method').forEach(m => {
-            m.classList.remove('selected');
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.payment-method').forEach(method => {
+        method.addEventListener('click', function() {
+            document.querySelectorAll('.payment-method').forEach(m => {
+                m.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            this.querySelector('input[type="radio"]').checked = true;
+            console.log('💳 Metodo di pagamento selezionato:', this.querySelector('input[type="radio"]').value);
         });
-        this.classList.add('selected');
-        this.querySelector('input[type="radio"]').checked = true;
     });
 });
 
