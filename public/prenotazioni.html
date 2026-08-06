@@ -717,6 +717,13 @@
                                 Causale: <strong>Prenotazione [Nome] - [Date]</strong><br><br>
                                 ⚠️ Invia lo screenshot della ricevuta via email o WhatsApp per confermare la prenotazione.
                             </div>
+
+                            <!-- Form Stripe Payment Element - appare quando si sceglie/completa Carta di Credito -->
+                            <div id="payment-element-container" style="display:none; margin-top: 20px;">
+                                <p style="color: var(--cobalt-blue); font-weight: 600; margin-bottom: 10px;">💳 Inserisci i dati di pagamento:</p>
+                                <div id="payment-element"></div>
+                                <div id="payment-errors" style="color:#8B0000; font-size:14px; margin-top:10px;"></div>
+                            </div>
                         </div>
                         
 
@@ -739,13 +746,6 @@
                         <!-- Messaggio di conferma per bonifico / PayPal -->
                         <div id="booking-success-message" style="display:none; margin-top:20px; background:#e8f5e9; border:1px solid #66bb6a; border-radius:10px; padding:18px; text-align:center; color:#1b5e20; font-weight:600;"></div>
                     </form>
-
-                    <!-- Form Stripe Payment Element - appare dopo aver cliccato Conferma -->
-                    <div id="payment-element-container" style="display:none; margin-top: 20px;">
-                        <p style="color: var(--cobalt-blue); font-weight: 600; margin-bottom: 10px;">💳 Inserisci i dati di pagamento:</p>
-                        <div id="payment-element"></div>
-                        <div id="payment-errors" style="color:#8B0000; font-size:14px; margin-top:10px;"></div>
-                    </div>
 
                 </div>
             </div>
