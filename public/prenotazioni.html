@@ -802,34 +802,24 @@
 <script src="https://js.stripe.com/v3/"></script>
     <script src="booking_FINALE.js"></script>
     <script>
-    // Gestione visiva del metodo di pagamento: evidenzia la scelta
-    // e mostra il pannello istruzioni corretto (bonifico / PayPal).
+    // Mostra/nasconde SOLO i pannelli istruzioni di bonifico e PayPal.
+    // Non tocca la classe "selected" né lo stato dei radio: quella logica
+    // (inclusa la carta di credito e i metodi extra Stripe come Klarna)
+    // resta interamente gestita da booking_FINALE.js.
     document.addEventListener('DOMContentLoaded', function () {
-        var methods = document.querySelectorAll('.payment-method');
         var transferInfo = document.getElementById('transfer-info');
         var paypalInfo = document.getElementById('paypal-info');
+        var radios = document.querySelectorAll('input[name="payment"]');
 
         function updatePaymentPanels() {
             var selected = document.querySelector('input[name="payment"]:checked');
             var value = selected ? selected.value : 'card';
-
-            methods.forEach(function (label) {
-                var input = label.querySelector('input[name="payment"]');
-                label.classList.toggle('selected', input && input.value === value);
-            });
-
             if (transferInfo) transferInfo.style.display = (value === 'transfer') ? 'block' : 'none';
             if (paypalInfo) paypalInfo.style.display = (value === 'paypal') ? 'block' : 'none';
         }
 
-        methods.forEach(function (label) {
-            label.addEventListener('click', function () {
-                var input = label.querySelector('input[name="payment"]');
-                if (input) {
-                    input.checked = true;
-                    updatePaymentPanels();
-                }
-            });
+        radios.forEach(function (radio) {
+            radio.addEventListener('change', updatePaymentPanels);
         });
 
         updatePaymentPanels();
