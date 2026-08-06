@@ -809,7 +809,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         var transferInfo = document.getElementById('transfer-info');
         var paypalInfo = document.getElementById('paypal-info');
-        var radios = document.querySelectorAll('input[name="payment"]');
+        var methods = document.querySelectorAll('.payment-method');
 
         function updatePaymentPanels() {
             var selected = document.querySelector('input[name="payment"]:checked');
@@ -818,8 +818,10 @@
             if (paypalInfo) paypalInfo.style.display = (value === 'paypal') ? 'block' : 'none';
         }
 
-        radios.forEach(function (radio) {
-            radio.addEventListener('change', updatePaymentPanels);
+        methods.forEach(function (method) {
+            method.addEventListener('click', updatePaymentPanels);
+            var radio = method.querySelector('input[name="payment"]');
+            if (radio) radio.addEventListener('change', updatePaymentPanels);
         });
 
         updatePaymentPanels();
