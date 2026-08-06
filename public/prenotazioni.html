@@ -702,12 +702,20 @@
 
 
                             <!-- Sezione bonifico -->
-                            <div id="transfer-info" style="margin-top:20px; display:none; background:#f9f9f9; padding:15px; border:1px solid #ddd;">
+                            <div id="transfer-info" style="margin-top:20px; display:none; background:#f9f9f9; padding:15px; border:1px solid #ddd; border-radius:10px;">
                                 <strong>Istruzioni Bonifico:</strong><br><br>
-                                Intestatario: <strong>La Perla Nera</strong><br>
-                                IBAN: <strong>IT60X0542404294000000123456</strong><br>
+                                Intestatario: <strong>MINGRONE DANNY</strong><br>
+                                IBAN: <strong>IT84P0200805127000107171277</strong><br>
                                 Causale: <strong>Prenotazione [Nome] - [Date]</strong><br><br>
                                 ⚠️ Effettua il bonifico entro 48 ore per confermare.
+                            </div>
+
+                            <!-- Sezione PayPal -->
+                            <div id="paypal-info" style="margin-top:20px; display:none; background:#f9f9f9; padding:15px; border:1px solid #ddd; border-radius:10px;">
+                                <strong>Istruzioni PayPal:</strong><br><br>
+                                Invia il pagamento a: <strong><a href="mailto:mingrone.danny@gmail.com" style="color:inherit">mingrone.danny@gmail.com</a></strong><br>
+                                Causale: <strong>Prenotazione [Nome] - [Date]</strong><br><br>
+                                ⚠️ Invia lo screenshot della ricevuta via email o WhatsApp per confermare la prenotazione.
                             </div>
                         </div>
                         
@@ -727,6 +735,9 @@
                         <button type="submit" class="btn-primary btn-large" style="width: 100%;">
                             Conferma Prenotazione
                         </button>
+
+                        <!-- Messaggio di conferma per bonifico / PayPal -->
+                        <div id="booking-success-message" style="display:none; margin-top:20px; background:#e8f5e9; border:1px solid #66bb6a; border-radius:10px; padding:18px; text-align:center; color:#1b5e20; font-weight:600;"></div>
                     </form>
 
                     <!-- Form Stripe Payment Element - appare dopo aver cliccato Conferma -->
@@ -792,6 +803,32 @@
     </footer>
 
 <script src="https://js.stripe.com/v3/"></script>
-    <script src="booking_FINALE.js"></script>
+    <script src="booking_FINALE.js?v=20260806"></script>
+    <script>
+    // Mostra/nasconde SOLO i pannelli istruzioni di bonifico e PayPal.
+    // Non tocca la classe "selected" né lo stato dei radio: quella logica
+    // (inclusa la carta di credito e i metodi extra Stripe come Klarna)
+    // resta interamente gestita da booking_FINALE.js.
+    document.addEventListener('DOMContentLoaded', function () {
+        var transferInfo = document.getElementById('transfer-info');
+        var paypalInfo = document.getElementById('paypal-info');
+        var methods = document.querySelectorAll('.payment-method');
+
+        function updatePaymentPanels() {
+            var selected = document.querySelector('input[name="payment"]:checked');
+            var value = selected ? selected.value : 'card';
+            if (transferInfo) transferInfo.style.display = (value === 'transfer') ? 'block' : 'none';
+            if (paypalInfo) paypalInfo.style.display = (value === 'paypal') ? 'block' : 'none';
+        }
+
+        methods.forEach(function (method) {
+            method.addEventListener('click', updatePaymentPanels);
+            var radio = method.querySelector('input[name="payment"]');
+            if (radio) radio.addEventListener('change', updatePaymentPanels);
+        });
+
+        updatePaymentPanels();
+    });
+    </script>
    </body>
 </html>
