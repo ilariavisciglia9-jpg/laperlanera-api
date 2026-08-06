@@ -242,6 +242,15 @@ function selectDate(date) {
     
     renderCalendar();
     updateBookingSummary();
+
+    // Se le date sono complete e il metodo attivo è "Carta di Credito", mostra il form Stripe
+    if (selectedCheckIn && selectedCheckOut) {
+        const paymentInput = document.querySelector('input[name="payment"]:checked');
+        const currentMethod = paymentInput ? paymentInput.value : 'card';
+        if (currentMethod === 'card') {
+            avviaPagamentoCarta();
+        }
+    }
 }
 
 // ===========================
@@ -326,15 +335,91 @@ function nextMonth() {
 // ===========================
 // PAYMENT METHOD SELECTION
 // ===========================
-document.querySelectorAll('.payment-method').forEach(method => {
-    method.addEventListener('click', function() {
-        document.querySelectorAll('.payment-method').forEach(m => {
-            m.classList.remove('selected');
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.payment-method').forEach(method => {
+        method.addEventListener('click', function() {
+            document.querySelectorAll('.payment-method').forEach(m => {
+                m.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            this.querySelector('input[type="radio"]').checked = true;
+            const value = this.querySelector('input[type="radio"]').value;
+            console.log('💳 Metodo di pagamento selezionato:', value);
+
+            // Se scelgono "Carta di Credito", mostra subito il form Stripe
+            if (value === 'card') {
+                avviaPagamentoCarta();
+            }
         });
-        this.classList.add('selected');
-        this.querySelector('input[type="radio"]').checked = true;
     });
 });
+
+// ===========================
+// AVVIA PAGAMENTO CARTA (crea Payment Intent + monta form Stripe)
+// ===========================
+async function avviaPagamentoCarta() {
+    // Se il form è già montato, non ricrearlo
+    if (elements) return;
+
+    if (!selectedCheckIn || !selectedCheckOut) {
+        alert('Per favore seleziona prima le date di check-in e check-out dal calendario.');
+        return;
+    }
+
+    const p = calcolaPrezzi();
+    if (!p) return;
+
+    try {
+        console.log('💳 Creazione Payment Intent...');
+
+        const amountInCents = Math.round(parseFloat(p.total) * 100);
+        console.log(`💰 Importo: €${p.total} → ${amountInCents} centesimi`);
+
+        const bookingDataPreview = {
+            checkIn: formatDate(selectedCheckIn),
+            checkOut: formatDate(selectedCheckOut),
+            nights: p.nights,
+            adults: p.adults,
+            children: p.children,
+            total: p.total.toFixed(2)
+        };
+
+        const paymentResponse = await fetch(`${API_URL}/api/create-payment-intent`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amountInCents,
+                currency: 'eur',
+                bookingData: bookingDataPreview
+            })
+        });
+
+        const paymentData = await paymentResponse.json();
+        console.log('📦 Risposta server:', JSON.stringify(paymentData));
+
+        if (!paymentData.clientSecret) {
+            throw new Error('Errore nella creazione del pagamento: ' + (paymentData.error || paymentData.details || 'sconosciuto'));
+        }
+
+        elements = stripe.elements({ clientSecret: paymentData.clientSecret });
+        paymentElement = elements.create('payment');
+
+        const container = document.getElementById('payment-element-container');
+        if (container) container.style.display = 'block';
+
+        setTimeout(() => {
+            paymentElement.mount('#payment-element');
+            paymentElement.on('ready', () => {
+                console.log('✅ Form pagamento pronto');
+                if (container) container.scrollIntoView({ behavior: 'smooth' });
+            });
+        }, 50);
+
+    } catch (error) {
+        console.error('❌ Errore:', error);
+        alert('Si è verificato un errore nella preparazione del pagamento: ' + error.message + '\n\nRiprova o contattaci.');
+    }
+}
 
 // ===========================
 // UPDATE SUMMARY WHEN GUESTS CHANGE
@@ -386,6 +471,9 @@ if (completeBookingForm) {
         const p = calcolaPrezzi();
         if (!p) return;
 
+        const paymentInput = document.querySelector('input[name="payment"]:checked');
+        const paymentMethod = paymentInput ? paymentInput.value : 'card';
+
         const bookingData = {
             checkIn: formatDate(selectedCheckIn),
             checkOut: formatDate(selectedCheckOut),
@@ -404,10 +492,38 @@ if (completeBookingForm) {
             extraGuestFee: p.extraGuestFee.toFixed(2),
             tax: p.tax.toFixed(2),
             total: p.total.toFixed(2),
+            paymentMethod: paymentMethod,
             timestamp: new Date().toISOString()
         };
 
   try {
+    // ═══════════════════════════════════════════
+    // BONIFICO o PAYPAL: nessun collegamento a Stripe.
+    // Si registra subito la prenotazione con il metodo scelto.
+    // ═══════════════════════════════════════════
+    if (paymentMethod === 'transfer' || paymentMethod === 'paypal') {
+        console.log('📨 Invio prenotazione con pagamento: ' + paymentMethod);
+
+        const bookingResponse = await fetch(`${API_URL}/api/confirm-booking`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingData)
+        });
+
+        const confirmData = await bookingResponse.json();
+
+        if (confirmData.success) {
+            showBookingSuccess(confirmData.bookingId, paymentMethod);
+        } else {
+            alert('Si è verificato un errore nella prenotazione. Riprova o contattaci.');
+        }
+        return;
+    }
+
+    // ═══════════════════════════════════════════
+    // CARTA DI CREDITO: flusso Stripe invariato
+    // ═══════════════════════════════════════════
+
     // Se il Payment Element è già montato, conferma pagamento
     if (elements) {
         console.log('🔄 Conferma pagamento...');
@@ -430,44 +546,10 @@ if (completeBookingForm) {
         return;
     }
 
-    // Prima volta: crea Payment Intent e monta il form carta
-    console.log('💳 Creazione Payment Intent...');
-    
-    // ✅ CORREZIONE: Converti in centesimi interi
-    const amountInCents = Math.round(parseFloat(p.total) * 100);
-    console.log(`💰 Importo: €${p.total} → ${amountInCents} centesimi`);
-    
-    const paymentResponse = await fetch(`${API_URL}/api/create-payment-intent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            amount: amountInCents,  // ✅ Invia centesimi interi
-            currency: 'eur',
-            bookingData: bookingData 
-        })
-    });
-
-    const paymentData = await paymentResponse.json();
-    console.log('📦 Risposta server:', JSON.stringify(paymentData));
-
-    if (!paymentData.clientSecret) {
-        throw new Error('Errore nella creazione del pagamento: ' + (paymentData.error || paymentData.details || 'sconosciuto'));
-    }
-
-    // Monta il form Stripe
-    elements = stripe.elements({ clientSecret: paymentData.clientSecret });
-    paymentElement = elements.create('payment');
-
-    const container = document.getElementById('payment-element-container');
-    if (container) container.style.display = 'block';
-
-    setTimeout(() => {
-        paymentElement.mount('#payment-element');
-        paymentElement.on('ready', () => {
-            console.log('✅ Form pagamento pronto');
-            container.scrollIntoView({ behavior: 'smooth' });
-        });
-    }, 50);
+    // Prima volta (fallback, es. se "Carta di Credito" era già selezionata di default
+    // e non è mai stata cliccata esplicitamente): crea Payment Intent e monta il form
+    await avviaPagamentoCarta();
+    return;
 
     } catch (error) {
         console.error('❌ Errore:', error);
@@ -476,6 +558,33 @@ if (completeBookingForm) {
 
     });  // fine addEventListener submit
 }  // fine if (completeBookingForm)
+
+// ===========================
+// MESSAGGIO DI CONFERMA (bonifico / paypal)
+// ===========================
+function showBookingSuccess(bookingId, paymentMethod) {
+    const box = document.getElementById('booking-success-message');
+    if (!box) {
+        alert('✅ Prenotazione inviata! Codice: ' + bookingId);
+        return;
+    }
+
+    let extra = '';
+    if (paymentMethod === 'transfer') {
+        extra = 'Completa il bonifico entro 48 ore usando le coordinate indicate sopra per confermare definitivamente la prenotazione.';
+    } else if (paymentMethod === 'paypal') {
+        extra = 'Invia il pagamento a mingrone.danny@gmail.com e mandaci lo screenshot della ricevuta per confermare definitivamente la prenotazione.';
+    }
+
+    box.innerHTML = '✅ <strong>Prenotazione inviata!</strong><br>Codice prenotazione: <strong>' + bookingId + '</strong><br>' + extra;
+    box.style.display = 'block';
+    box.scrollIntoView({ behavior: 'smooth' });
+
+    if (completeBookingForm) {
+        const submitBtn = completeBookingForm.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+    }
+}
 
 async function completaPrenotazione(bookingData, paymentIntent) {
     try {
