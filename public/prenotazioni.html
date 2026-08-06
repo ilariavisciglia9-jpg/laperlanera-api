@@ -702,12 +702,20 @@
 
 
                             <!-- Sezione bonifico -->
-                            <div id="transfer-info" style="margin-top:20px; display:none; background:#f9f9f9; padding:15px; border:1px solid #ddd;">
+                            <div id="transfer-info" style="margin-top:20px; display:none; background:#f9f9f9; padding:15px; border:1px solid #ddd; border-radius:10px;">
                                 <strong>Istruzioni Bonifico:</strong><br><br>
-                                Intestatario: <strong>La Perla Nera</strong><br>
-                                IBAN: <strong>IT60X0542404294000000123456</strong><br>
+                                Intestatario: <strong>MINGRONE DANNY</strong><br>
+                                IBAN: <strong>IT84P0200805127000107171277</strong><br>
                                 Causale: <strong>Prenotazione [Nome] - [Date]</strong><br><br>
                                 ⚠️ Effettua il bonifico entro 48 ore per confermare.
+                            </div>
+
+                            <!-- Sezione PayPal -->
+                            <div id="paypal-info" style="margin-top:20px; display:none; background:#f9f9f9; padding:15px; border:1px solid #ddd; border-radius:10px;">
+                                <strong>Istruzioni PayPal:</strong><br><br>
+                                Invia il pagamento a: <strong>mingrone.danny@gmail.com</strong><br>
+                                Causale: <strong>Prenotazione [Nome] - [Date]</strong><br><br>
+                                ⚠️ Invia lo screenshot della ricevuta via email o WhatsApp per confermare la prenotazione.
                             </div>
                         </div>
                         
@@ -793,5 +801,39 @@
 
 <script src="https://js.stripe.com/v3/"></script>
     <script src="booking_FINALE.js"></script>
+    <script>
+    // Gestione visiva del metodo di pagamento: evidenzia la scelta
+    // e mostra il pannello istruzioni corretto (bonifico / PayPal).
+    document.addEventListener('DOMContentLoaded', function () {
+        var methods = document.querySelectorAll('.payment-method');
+        var transferInfo = document.getElementById('transfer-info');
+        var paypalInfo = document.getElementById('paypal-info');
+
+        function updatePaymentPanels() {
+            var selected = document.querySelector('input[name="payment"]:checked');
+            var value = selected ? selected.value : 'card';
+
+            methods.forEach(function (label) {
+                var input = label.querySelector('input[name="payment"]');
+                label.classList.toggle('selected', input && input.value === value);
+            });
+
+            if (transferInfo) transferInfo.style.display = (value === 'transfer') ? 'block' : 'none';
+            if (paypalInfo) paypalInfo.style.display = (value === 'paypal') ? 'block' : 'none';
+        }
+
+        methods.forEach(function (label) {
+            label.addEventListener('click', function () {
+                var input = label.querySelector('input[name="payment"]');
+                if (input) {
+                    input.checked = true;
+                    updatePaymentPanels();
+                }
+            });
+        });
+
+        updatePaymentPanels();
+    });
+    </script>
    </body>
 </html>
