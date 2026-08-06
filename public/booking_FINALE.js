@@ -326,16 +326,13 @@ function nextMonth() {
 // ===========================
 // PAYMENT METHOD SELECTION
 // ===========================
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.payment-method').forEach(method => {
-        method.addEventListener('click', function() {
-            document.querySelectorAll('.payment-method').forEach(m => {
-                m.classList.remove('selected');
-            });
-            this.classList.add('selected');
-            this.querySelector('input[type="radio"]').checked = true;
-            console.log('💳 Metodo di pagamento selezionato:', this.querySelector('input[type="radio"]').value);
+document.querySelectorAll('.payment-method').forEach(method => {
+    method.addEventListener('click', function() {
+        document.querySelectorAll('.payment-method').forEach(m => {
+            m.classList.remove('selected');
         });
+        this.classList.add('selected');
+        this.querySelector('input[type="radio"]').checked = true;
     });
 });
 
@@ -389,9 +386,6 @@ if (completeBookingForm) {
         const p = calcolaPrezzi();
         if (!p) return;
 
-        const paymentInput = document.querySelector('input[name="payment"]:checked');
-        const paymentMethod = paymentInput ? paymentInput.value : 'card';
-
         const bookingData = {
             checkIn: formatDate(selectedCheckIn),
             checkOut: formatDate(selectedCheckOut),
@@ -410,38 +404,10 @@ if (completeBookingForm) {
             extraGuestFee: p.extraGuestFee.toFixed(2),
             tax: p.tax.toFixed(2),
             total: p.total.toFixed(2),
-            paymentMethod: paymentMethod,
             timestamp: new Date().toISOString()
         };
 
   try {
-    // ═══════════════════════════════════════════
-    // BONIFICO o PAYPAL: nessun collegamento a Stripe.
-    // Si registra subito la prenotazione con il metodo scelto.
-    // ═══════════════════════════════════════════
-    if (paymentMethod === 'transfer' || paymentMethod === 'paypal') {
-        console.log('📨 Invio prenotazione con pagamento: ' + paymentMethod);
-
-        const bookingResponse = await fetch(`${API_URL}/api/confirm-booking`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bookingData)
-        });
-
-        const confirmData = await bookingResponse.json();
-
-        if (confirmData.success) {
-            showBookingSuccess(confirmData.bookingId, paymentMethod);
-        } else {
-            alert('Si è verificato un errore nella prenotazione. Riprova o contattaci.');
-        }
-        return;
-    }
-
-    // ═══════════════════════════════════════════
-    // CARTA DI CREDITO: flusso Stripe invariato
-    // ═══════════════════════════════════════════
-
     // Se il Payment Element è già montato, conferma pagamento
     if (elements) {
         console.log('🔄 Conferma pagamento...');
@@ -510,33 +476,6 @@ if (completeBookingForm) {
 
     });  // fine addEventListener submit
 }  // fine if (completeBookingForm)
-
-// ===========================
-// MESSAGGIO DI CONFERMA (bonifico / paypal)
-// ===========================
-function showBookingSuccess(bookingId, paymentMethod) {
-    const box = document.getElementById('booking-success-message');
-    if (!box) {
-        alert('✅ Prenotazione inviata! Codice: ' + bookingId);
-        return;
-    }
-
-    let extra = '';
-    if (paymentMethod === 'transfer') {
-        extra = 'Completa il bonifico entro 48 ore usando le coordinate indicate sopra per confermare definitivamente la prenotazione.';
-    } else if (paymentMethod === 'paypal') {
-        extra = 'Invia il pagamento a mingrone.danny@gmail.com e mandaci lo screenshot della ricevuta per confermare definitivamente la prenotazione.';
-    }
-
-    box.innerHTML = '✅ <strong>Prenotazione inviata!</strong><br>Codice prenotazione: <strong>' + bookingId + '</strong><br>' + extra;
-    box.style.display = 'block';
-    box.scrollIntoView({ behavior: 'smooth' });
-
-    if (completeBookingForm) {
-        const submitBtn = completeBookingForm.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.disabled = true;
-    }
-}
 
 async function completaPrenotazione(bookingData, paymentIntent) {
     try {
