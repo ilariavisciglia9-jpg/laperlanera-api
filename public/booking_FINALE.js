@@ -67,7 +67,7 @@ const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
 const seasonalPrices = {
     weekend: { price: 80 },
     highSeason: {
-        price: 120,
+        price: 1, // ⚠️ TEST: era 120 — 2-3 settembre ricade qui (periodo 15/06-15/09)
         periods: [
             { start: '06-15', end: '09-15' },
             { start: '12-20', end: '01-06' }
@@ -80,7 +80,7 @@ const seasonalPrices = {
         ]
     },
     lowSeason: {
-        price: 1,
+        price: 75, // ripristinato (era stato messo a 1 per errore in precedenza)
         periods: [
             { start: '03-01', end: '06-14' },
             { start: '09-16', end: '12-19' }
@@ -147,14 +147,14 @@ function calcolaPrezzi() {
 
     const nights = Math.ceil((selectedCheckOut - selectedCheckIn) / (1000 * 60 * 60 * 24));
     const subtotal = calculateTotalPrice(selectedCheckIn, selectedCheckOut);
-    const cleaningFee = 20;
+    const cleaningFee = 30; // ⚠️ TEST: era 20
 
     const adults = parseInt(document.getElementById('adults') ? document.getElementById('adults').value : 2) || 2;
     const children = parseInt(document.getElementById('children') ? document.getElementById('children').value : 0) || 0;
     const totalPersone = adults + children;
 
     // Tassa di soggiorno: €3.50 a persona a notte
-    const tax = totalPersone * 1 * nights;
+    const tax = totalPersone * 3.5 * nights; // ripristinato (era stato messo a 1 per errore in precedenza)
 
     // Supplemento ospiti: €10 a notte per ogni adulto oltre i 2
     const extraGuests = Math.max(0, adults - 2);
