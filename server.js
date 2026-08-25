@@ -3,7 +3,6 @@ const cors = require('cors');
 const fetch = require('node-fetch');
 const ical = require('node-ical');
 require('dotenv').config();
-const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -266,6 +265,30 @@ app.post('/api/confirm-booking', async (req, res) => {
     }
 });
 
+async function sendEmailViaResend({ to, subject, html }) {
+    const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            from: process.env.EMAIL_FROM || 'La Perla Nera <info@laperlanera.eu>',
+            to: [to],
+            subject: subject,
+            html: html
+        })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || `Errore Resend (status ${response.status})`);
+    }
+
+    return data;
+}
+
 async function sendBookingEmails(bookingData, bookingId) {
     const m = {
         checkIn: bookingData.checkIn,
@@ -280,29 +303,13 @@ async function sendBookingEmails(bookingData, bookingId) {
     const importo = parseFloat(bookingData.total || 0).toFixed(2);
     const valuta = 'EUR';
 
-    const emailPort = 587;
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.laperlanera.eu',
-        port: emailPort,
-        secure: false,
-        family: 4,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        },
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 10000
-    });
-
     const formatDate = (dateStr) => {
         if (!dateStr) return 'N/D';
         const d = new Date(dateStr);
         return d.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     };
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"La Perla Nera" <info@laperlanera.eu>',
+    await sendEmailViaResend({
         to: process.env.ADMIN_EMAIL || 'info@laperlanera.eu',
         subject: `🏠 Nuova prenotazione - ${m.guestName} | ${m.checkIn} → ${m.checkOut}`,
         html: `
@@ -361,8 +368,7 @@ async function sendBookingEmails(bookingData, bookingId) {
     });
 
     if (m.guestEmail) {
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM || '"La Perla Nera" <info@laperlanera.eu>',
+        await sendEmailViaResend({
             to: m.guestEmail,
             subject: `✅ Prenotazione confermata - La Perla Nera | ${m.checkIn} → ${m.checkOut}`,
             html: `
@@ -412,37 +418,21 @@ async function sendBookingEmails(bookingData, bookingId) {
         });
     }
 
-    console.log('📧 Email admin inviata a:', process.env.ADMIN_EMAIL);
+    console.log('📧 Email admin inviata a:', process.env.ADMIN_EMAIL || 'info@laperlanera.eu');
     console.log('📧 Email cliente inviata a:', m.guestEmail);
 }
 
 app.get('/api/test-email', async (req, res) => {
     try {
-        const emailPort = 587;
-        const transporter = nodemailer.createTransport({
-            host: 'smtp.laperlanera.eu',
-            port: emailPort,
-            secure: false,
-            family: 4,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 10000
-        });
-
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM || '"La Perla Nera" <info@laperlanera.eu>',
+        const data = await sendEmailViaResend({
             to: process.env.ADMIN_EMAIL || 'info@laperlanera.eu',
             subject: '🔧 Test email - La Perla Nera',
-            html: '<p>Se leggi questo, le credenziali email funzionano correttamente!</p>'
+            html: '<p>Se leggi questo, Resend funziona correttamente!</p>'
         });
 
-        res.send('<h1 style="color:green">✅ EMAIL INVIATA CON SUCCESSO!</h1><p>Controlla la casella ' + (process.env.ADMIN_EMAIL || 'info@laperlanera.eu') + '</p>');
+        res.send('<h1 style="color:green">✅ EMAIL INVIATA CON SUCCESSO!</h1><p>Controlla la casella ' + (process.env.ADMIN_EMAIL || 'info@laperlanera.eu') + '</p><pre>' + JSON.stringify(data) + '</pre>');
     } catch (error) {
-        res.send('<h1 style="color:red">❌ ERRORE INVIO EMAIL</h1><pre>' + error.message + '</pre><p>EMAIL_USER: ' + (process.env.EMAIL_USER || 'MANCANTE') + '</p><p>HOST USATO (fisso): smtp.laperlanera.eu</p><p>PORTA USATA (fissa): 587</p>');
+        res.send('<h1 style="color:red">❌ ERRORE INVIO EMAIL</h1><pre>' + error.message + '</pre><p>RESEND_API_KEY presente: ' + (process.env.RESEND_API_KEY ? 'Sì' : 'NO - MANCANTE') + '</p>');
     }
 });
 
@@ -453,7 +443,8 @@ app.get('/api/status', (req, res) => {
         lastSync: lastSyncTime ? new Date(lastSyncTime).toISOString() : 'Never',
         cachedDates: cachedBookedDates.length,
         cacheValid: lastSyncTime && (Date.now() - lastSyncTime) < CACHE_DURATION,
-        stripeConfigured: !!process.env.STRIPE_SECRET_KEY
+        stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
+        resendConfigured: !!process.env.RESEND_API_KEY
     });
 });
 
@@ -482,13 +473,14 @@ app.get('/', (req, res) => {
                 <div class="endpoint"><strong>POST /api/create-payment-intent</strong><br>Crea un pagamento Stripe sicuro</div>
                 <div class="endpoint"><strong>POST /api/confirm-booking</strong><br>Conferma la prenotazione e invia le email</div>
                 <div class="endpoint"><strong>POST /api/webhook</strong><br>Ricevi conferme pagamento da Stripe</div>
-                <div class="endpoint"><strong>GET /api/test-email</strong><br>Test diretto invio email</div>
+                <div class="endpoint"><strong>GET /api/test-email</strong><br>Test diretto invio email (Resend)</div>
                 <div class="endpoint"><strong>GET /api/status</strong><br>Verifica lo stato del server</div>
                 <h2>📊 Info:</h2>
                 <ul>
                     <li>Date in cache: <strong>${cachedBookedDates.length}</strong></li>
                     <li>Ultimo sync: <strong>${lastSyncTime ? new Date(lastSyncTime).toLocaleString('it-IT') : 'Mai'}</strong></li>
                     <li>Stripe: <strong>${process.env.STRIPE_SECRET_KEY ? '✅ Configurato' : '❌ Non configurato'}</strong></li>
+                    <li>Resend (email): <strong>${process.env.RESEND_API_KEY ? '✅ Configurato' : '❌ Non configurato'}</strong></li>
                 </ul>
             </div>
         </body>
@@ -518,12 +510,13 @@ app.listen(PORT, () => {
     console.log('   POST /api/create-payment-intent - Crea pagamento Stripe');
     console.log('   POST /api/confirm-booking - Conferma prenotazione e invia email');
     console.log('   POST /api/webhook - Webhook Stripe');
-    console.log('   GET  /api/test-email - Test diretto invio email');
+    console.log('   GET  /api/test-email - Test diretto invio email (Resend)');
     console.log('   GET  /api/status - Stato del sistema');
     console.log('');
     console.log('⏰ Auto-sync ogni 5 minuti');
     console.log('💾 Cache: 5 minuti');
     console.log(`💳 Stripe: ${process.env.STRIPE_SECRET_KEY ? '✅ Configurato' : '❌ Mancante'}`);
+    console.log(`📧 Resend: ${process.env.RESEND_API_KEY ? '✅ Configurato' : '❌ Mancante'}`);
     console.log('');
 });
 
