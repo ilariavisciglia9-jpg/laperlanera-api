@@ -80,7 +80,7 @@ const seasonalPrices = {
         ]
     },
     lowSeason: {
-        price: 75,
+        price: 1,
         periods: [
             { start: '03-01', end: '06-14' },
             { start: '09-16', end: '12-19' }
@@ -154,7 +154,7 @@ function calcolaPrezzi() {
     const totalPersone = adults + children;
 
     // Tassa di soggiorno: €3.50 a persona a notte
-    const tax = totalPersone * 3.5 * nights;
+    const tax = totalPersone * 1 * nights;
 
     // Supplemento ospiti: €10 a notte per ogni adulto oltre i 2
     const extraGuests = Math.max(0, adults - 2);
