@@ -8,18 +8,10 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ===========================
-// STRIPE CONFIGURATION (SICURA)
-// ===========================
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// ===========================
-// MIDDLEWARE
-// ===========================
 app.use(cors());
 
-// ⚠️ WEBHOOK STRIPE: deve stare PRIMA di express.json(), perché ha bisogno
-// del corpo "raw" (non parsato) per poter verificare la firma della richiesta.
 app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -44,18 +36,12 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
 app.use(express.json());
 app.use(express.static('public'));
 
-// ===========================
-// CONFIGURAZIONE AIRBNB
-// ===========================
 const AIRBNB_ICAL_URL = process.env.AIRBNB_ICAL_URL;
 
 let cachedBookedDates = [];
 let lastSyncTime = null;
 const CACHE_DURATION = 5 * 60 * 1000;
 
-// ===========================
-// API ENDPOINT - SYNC CALENDAR
-// ===========================
 app.post('/api/sync-calendar', async (req, res) => {
     try {
         const now = Date.now();
@@ -154,9 +140,6 @@ app.post('/api/sync-calendar', async (req, res) => {
     }
 });
 
-// ===========================
-// API ENDPOINT - GET CALENDAR
-// ===========================
 app.get('/api/calendar', async (req, res) => {
     try {
         const now = Date.now();
@@ -206,9 +189,6 @@ app.get('/api/calendar', async (req, res) => {
     }
 });
 
-// ===========================
-// STRIPE PAYMENT INTENT
-// ===========================
 app.post('/api/create-payment-intent', async (req, res) => {
     try {
         const { amount, currency, bookingData } = req.body;
@@ -267,9 +247,6 @@ app.get('/api/stripe-config', (req, res) => {
     });
 });
 
-// ===========================
-// CONFERMA PRENOTAZIONE
-// ===========================
 app.post('/api/confirm-booking', async (req, res) => {
     try {
         const bookingData = req.body;
@@ -289,9 +266,6 @@ app.post('/api/confirm-booking', async (req, res) => {
     }
 });
 
-// ===========================
-// FUNZIONE EMAIL PRENOTAZIONE
-// ===========================
 async function sendBookingEmails(bookingData, bookingId) {
     const m = {
         checkIn: bookingData.checkIn,
@@ -313,7 +287,10 @@ async function sendBookingEmails(bookingData, bookingId) {
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
-        }
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000
     });
 
     const formatDate = (dateStr) => {
@@ -437,9 +414,6 @@ async function sendBookingEmails(bookingData, bookingId) {
     console.log('📧 Email cliente inviata a:', m.guestEmail);
 }
 
-// ===========================
-// 🔧 TEST EMAIL DIRETTO (temporaneo, per diagnosticare Aruba SMTP)
-// ===========================
 app.get('/api/test-email', async (req, res) => {
     try {
         const transporter = nodemailer.createTransport({
@@ -449,7 +423,10 @@ app.get('/api/test-email', async (req, res) => {
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
-            }
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000
         });
 
         await transporter.sendMail({
@@ -465,9 +442,6 @@ app.get('/api/test-email', async (req, res) => {
     }
 });
 
-// ===========================
-// API ENDPOINT - STATUS
-// ===========================
 app.get('/api/status', (req, res) => {
     res.json({
         status: 'online',
@@ -479,9 +453,6 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-// ===========================
-// ROOT ENDPOINT
-// ===========================
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -521,9 +492,6 @@ app.get('/', (req, res) => {
     `);
 });
 
-// ===========================
-// GESTIONE ERRORI 404
-// ===========================
 app.use((req, res) => {
     res.status(404).json({
         error: 'Endpoint non trovato',
@@ -531,9 +499,6 @@ app.use((req, res) => {
     });
 });
 
-// ===========================
-// AVVIO SERVER
-// ===========================
 app.listen(PORT, () => {
     console.log('');
     console.log('🏠 ================================');
@@ -558,9 +523,6 @@ app.listen(PORT, () => {
     console.log('');
 });
 
-// ===========================
-// GESTIONE CHIUSURA SERVER
-// ===========================
 process.on('SIGINT', () => {
     console.log('\n👋 Chiusura server...');
     process.exit(0);
