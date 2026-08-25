@@ -23,10 +23,9 @@ app.use(cors());
 // Se express.json() lo intercetta prima, la firma non è più verificabile
 // e Stripe riceve sempre un errore 400 (questo causava le email mancanti).
 //
-// Inoltre risponde a Stripe SUBITO (entro pochi millisecondi) e invia le
-// email DOPO, in background: se aspettiamo l'invio email prima di rispondere,
-// Stripe può andare in timeout se Aruba SMTP è lento, segnando il webhook
-// come "fallito" anche se in realtà tutto va a buon fine.
+// Inoltre risponde a Stripe SUBITO (entro pochi millisecondi), come da
+// linee guida Stripe: se aspettiamo attività lunghe prima di rispondere,
+// Stripe può andare in timeout e segnare il webhook come "fallito".
 app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -39,24 +38,20 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
         console.error('❌ Webhook signature verification failed:', err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
-    
-    // ⚠️ Rispondi SUBITO a Stripe (entro pochi secondi, come richiesto),
-    // poi invia le email in background. Se aspettiamo l'invio email prima
-    // di rispondere, Stripe può andare in timeout se Aruba SMTP è lento,
-    // segnando il webhook come "fallito" anche se tutto va a buon fine.
+
+    // Rispondi SUBITO a Stripe, prima di qualsiasi altra elaborazione
     res.json({received: true});
 
     // Gestisci l'evento (dopo aver già risposto a Stripe)
+    // NB: qui NON inviamo le email — il Payment Intent viene creato prima
+    // che il cliente compili nome/cognome/email nel form, quindi i metadata
+    // sarebbero incompleti ("undefined undefined"). Le email con i dati
+    // completi partono da /api/confirm-booking, chiamato dal frontend con
+    // tutto il form dopo il pagamento riuscito. Questo log resta solo come
+    // conferma interna che Stripe ha effettivamente incassato il pagamento.
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
-        console.log('💰 Pagamento ricevuto:', paymentIntent.id);
-        console.log('📧 Cliente:', paymentIntent.receipt_email);
-        console.log('💵 Importo:', paymentIntent.amount / 100, paymentIntent.currency.toUpperCase());
-        
-        // Invia email di notifica all'admin e conferma al cliente (non bloccante)
-        sendBookingEmails(paymentIntent)
-            .then(() => console.log('✅ Email di notifica inviate'))
-            .catch((emailErr) => console.error('❌ Errore invio email:', emailErr.message));
+        console.log('💰 [Webhook] Pagamento confermato da Stripe:', paymentIntent.id, '-', paymentIntent.amount / 100, paymentIntent.currency.toUpperCase());
     }
 });
 
@@ -291,12 +286,49 @@ app.get('/api/stripe-config', (req, res) => {
 });
 
 // ===========================
+// 🆕 CONFERMA PRENOTAZIONE (chiamato dal frontend dopo pagamento riuscito,
+// o direttamente per bonifico/PayPal). Riceve TUTTI i dati del form,
+// quindi qui i nomi/email del cliente sono sempre corretti e completi.
+// ===========================
+app.post('/api/confirm-booking', async (req, res) => {
+    try {
+        const bookingData = req.body;
+
+        // Genera un codice prenotazione semplice e leggibile
+        const bookingId = 'LPN-' + Date.now().toString(36).toUpperCase();
+
+        console.log('📨 Nuova richiesta conferma prenotazione:', bookingId, '-', bookingData.email);
+
+        // Rispondi subito al frontend (come per il webhook, non far aspettare l'invio email)
+        res.json({ success: true, bookingId });
+
+        // Invia le email in background, con i dati reali e completi del form
+        sendBookingEmails(bookingData, bookingId)
+            .then(() => console.log('✅ Email di conferma prenotazione inviate:', bookingId))
+            .catch((emailErr) => console.error('❌ Errore invio email conferma:', emailErr.message));
+
+    } catch (error) {
+        console.error('❌ Errore in /api/confirm-booking:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ===========================
 // FUNZIONE EMAIL PRENOTAZIONE
 // ===========================
-async function sendBookingEmails(paymentIntent) {
-    const m = paymentIntent.metadata;
-    const importo = (paymentIntent.amount / 100).toFixed(2);
-    const valuta = (paymentIntent.currency || 'eur').toUpperCase();
+async function sendBookingEmails(bookingData, bookingId) {
+    const m = {
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut,
+        nights: bookingData.nights,
+        adults: bookingData.adults,
+        children: bookingData.children,
+        guestName: `${bookingData.firstName || ''} ${bookingData.lastName || ''}`.trim(),
+        guestEmail: bookingData.email,
+        guestPhone: bookingData.phone
+    };
+    const importo = parseFloat(bookingData.total || 0).toFixed(2);
+    const valuta = 'EUR';
 
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST || 'smtps.aruba.it',
@@ -368,7 +400,7 @@ async function sendBookingEmails(paymentIntent) {
                     <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
                         <span style="font-size: 28px; font-weight: bold; color: #2e7d32;">€${importo} ${valuta}</span>
                         <br><span style="color: #666; font-size: 14px;">Pagamento confermato ✅</span>
-                        <br><span style="color: #999; font-size: 12px;">ID: ${paymentIntent.id}</span>
+                        <br><span style="color: #999; font-size: 12px;">Codice prenotazione: ${bookingId}</span>
                     </div>
 
                     <p style="margin-top: 20px; color: #666; font-size: 13px; border-top: 1px solid #eee; padding-top: 15px;">
@@ -496,6 +528,11 @@ app.get('/', (req, res) => {
                 </div>
                 
                 <div class="endpoint">
+                    <strong>POST /api/confirm-booking</strong><br>
+                    Conferma la prenotazione e invia le email
+                </div>
+                
+                <div class="endpoint">
                     <strong>POST /api/webhook</strong><br>
                     Ricevi conferme pagamento da Stripe
                 </div>
@@ -548,6 +585,7 @@ app.listen(PORT, () => {
     console.log('   POST /api/sync-calendar - Sync con Airbnb');
     console.log('   GET  /api/calendar - Ottieni date prenotate');
     console.log('   POST /api/create-payment-intent - Crea pagamento Stripe');
+    console.log('   POST /api/confirm-booking - Conferma prenotazione e invia email');
     console.log('   POST /api/webhook - Webhook Stripe');
     console.log('   GET  /api/status - Stato del sistema');
     console.log('');
