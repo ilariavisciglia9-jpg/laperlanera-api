@@ -22,6 +22,11 @@ app.use(cors());
 // del corpo "raw" (non parsato) per poter verificare la firma della richiesta.
 // Se express.json() lo intercetta prima, la firma non è più verificabile
 // e Stripe riceve sempre un errore 400 (questo causava le email mancanti).
+//
+// Inoltre risponde a Stripe SUBITO (entro pochi millisecondi) e invia le
+// email DOPO, in background: se aspettiamo l'invio email prima di rispondere,
+// Stripe può andare in timeout se Aruba SMTP è lento, segnando il webhook
+// come "fallito" anche se in realtà tutto va a buon fine.
 app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -35,23 +40,24 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
     
-    // Gestisci l'evento
+    // ⚠️ Rispondi SUBITO a Stripe (entro pochi secondi, come richiesto),
+    // poi invia le email in background. Se aspettiamo l'invio email prima
+    // di rispondere, Stripe può andare in timeout se Aruba SMTP è lento,
+    // segnando il webhook come "fallito" anche se tutto va a buon fine.
+    res.json({received: true});
+
+    // Gestisci l'evento (dopo aver già risposto a Stripe)
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
         console.log('💰 Pagamento ricevuto:', paymentIntent.id);
         console.log('📧 Cliente:', paymentIntent.receipt_email);
         console.log('💵 Importo:', paymentIntent.amount / 100, paymentIntent.currency.toUpperCase());
         
-        // Invia email di notifica all'admin e conferma al cliente
-        try {
-            await sendBookingEmails(paymentIntent);
-            console.log('✅ Email di notifica inviate');
-        } catch(emailErr) {
-            console.error('❌ Errore invio email:', emailErr.message);
-        }
+        // Invia email di notifica all'admin e conferma al cliente (non bloccante)
+        sendBookingEmails(paymentIntent)
+            .then(() => console.log('✅ Email di notifica inviate'))
+            .catch((emailErr) => console.error('❌ Errore invio email:', emailErr.message));
     }
-    
-    res.json({received: true});
 });
 
 app.use(express.json());
