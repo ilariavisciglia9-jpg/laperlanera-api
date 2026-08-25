@@ -147,14 +147,14 @@ function calcolaPrezzi() {
 
     const nights = Math.ceil((selectedCheckOut - selectedCheckIn) / (1000 * 60 * 60 * 24));
     const subtotal = calculateTotalPrice(selectedCheckIn, selectedCheckOut);
-    const cleaningFee = 30; // ⚠️ TEST: era 20
+    const cleaningFee = 1; // ⚠️ TEST: era 20
 
     const adults = parseInt(document.getElementById('adults') ? document.getElementById('adults').value : 2) || 2;
     const children = parseInt(document.getElementById('children') ? document.getElementById('children').value : 0) || 0;
     const totalPersone = adults + children;
 
     // Tassa di soggiorno: €3.50 a persona a notte
-    const tax = totalPersone * 3.5 * nights; // ripristinato (era stato messo a 1 per errore in precedenza)
+    const tax = totalPersone * 1 * nights; // ripristinato (era stato messo a 1 per errore in precedenza)
 
     // Supplemento ospiti: €10 a notte per ogni adulto oltre i 2
     const extraGuests = Math.max(0, adults - 2);
