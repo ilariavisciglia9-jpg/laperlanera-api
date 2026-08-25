@@ -17,6 +17,43 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 // MIDDLEWARE
 // ===========================
 app.use(cors());
+
+// ⚠️ WEBHOOK STRIPE: deve stare PRIMA di express.json(), perché ha bisogno
+// del corpo "raw" (non parsato) per poter verificare la firma della richiesta.
+// Se express.json() lo intercetta prima, la firma non è più verificabile
+// e Stripe riceve sempre un errore 400 (questo causava le email mancanti).
+app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    
+    let event;
+    
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err) {
+        console.error('❌ Webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+    
+    // Gestisci l'evento
+    if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object;
+        console.log('💰 Pagamento ricevuto:', paymentIntent.id);
+        console.log('📧 Cliente:', paymentIntent.receipt_email);
+        console.log('💵 Importo:', paymentIntent.amount / 100, paymentIntent.currency.toUpperCase());
+        
+        // Invia email di notifica all'admin e conferma al cliente
+        try {
+            await sendBookingEmails(paymentIntent);
+            console.log('✅ Email di notifica inviate');
+        } catch(emailErr) {
+            console.error('❌ Errore invio email:', emailErr.message);
+        }
+    }
+    
+    res.json({received: true});
+});
+
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -246,42 +283,6 @@ app.get('/api/stripe-config', (req, res) => {
         publishableKey: process.env.STRIPE_PUBLIC_KEY
     });
 });
-
-// ===========================
-// 🆕 WEBHOOK STRIPE (CONFERMA PAGAMENTI)
-// ===========================
-app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
-    const sig = req.headers['stripe-signature'];
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    
-    let event;
-    
-    try {
-        event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-    } catch (err) {
-        console.error('❌ Webhook signature verification failed:', err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-    
-    // Gestisci l'evento
-    if (event.type === 'payment_intent.succeeded') {
-        const paymentIntent = event.data.object;
-        console.log('💰 Pagamento ricevuto:', paymentIntent.id);
-        console.log('📧 Cliente:', paymentIntent.receipt_email);
-        console.log('💵 Importo:', paymentIntent.amount / 100, paymentIntent.currency.toUpperCase());
-        
-        // Invia email di notifica all'admin e conferma al cliente
-        try {
-            await sendBookingEmails(paymentIntent);
-            console.log('✅ Email di notifica inviate');
-        } catch(emailErr) {
-            console.error('❌ Errore invio email:', emailErr.message);
-        }
-    }
-    
-    res.json({received: true});
-});
-
 
 // ===========================
 // FUNZIONE EMAIL PRENOTAZIONE
