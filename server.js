@@ -281,8 +281,8 @@ async function sendBookingEmails(bookingData, bookingId) {
     const valuta = 'EUR';
 
     const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'smtps.aruba.it',
-        port: parseInt(process.env.EMAIL_PORT) || 465,
+        host: process.env.EMAIL_HOST || 'smtp.laperlanera.eu',
+        port: parseInt(process.env.EMAIL_PORT) || 587,
         secure: true,
         auth: {
             user: process.env.EMAIL_USER,
