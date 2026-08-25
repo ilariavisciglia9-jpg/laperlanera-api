@@ -280,10 +280,11 @@ async function sendBookingEmails(bookingData, bookingId) {
     const importo = parseFloat(bookingData.total || 0).toFixed(2);
     const valuta = 'EUR';
 
+    const emailPort = parseInt(process.env.EMAIL_PORT) || 587;
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST || 'smtp.laperlanera.eu',
-        port: parseInt(process.env.EMAIL_PORT) || 587,
-        secure: true,
+        port: emailPort,
+        secure: emailPort === 465,
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
@@ -416,10 +417,11 @@ async function sendBookingEmails(bookingData, bookingId) {
 
 app.get('/api/test-email', async (req, res) => {
     try {
+        const emailPort = parseInt(process.env.EMAIL_PORT) || 587;
         const transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_HOST || 'smtps.aruba.it',
-            port: parseInt(process.env.EMAIL_PORT) || 465,
-            secure: true,
+            host: process.env.EMAIL_HOST || 'smtp.laperlanera.eu',
+            port: emailPort,
+            secure: emailPort === 465,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
@@ -438,7 +440,7 @@ app.get('/api/test-email', async (req, res) => {
 
         res.send('<h1 style="color:green">✅ EMAIL INVIATA CON SUCCESSO!</h1><p>Controlla la casella ' + (process.env.ADMIN_EMAIL || 'info@laperlanera.eu') + '</p>');
     } catch (error) {
-        res.send('<h1 style="color:red">❌ ERRORE INVIO EMAIL</h1><pre>' + error.message + '</pre><p>EMAIL_USER: ' + (process.env.EMAIL_USER || 'MANCANTE') + '</p><p>EMAIL_HOST: ' + (process.env.EMAIL_HOST || 'MANCANTE (userà default smtps.aruba.it)') + '</p><p>EMAIL_PORT: ' + (process.env.EMAIL_PORT || 'MANCANTE (userà default 465)') + '</p>');
+        res.send('<h1 style="color:red">❌ ERRORE INVIO EMAIL</h1><pre>' + error.message + '</pre><p>EMAIL_USER: ' + (process.env.EMAIL_USER || 'MANCANTE') + '</p><p>EMAIL_HOST: ' + (process.env.EMAIL_HOST || 'MANCANTE (userà default smtp.laperlanera.eu)') + '</p><p>EMAIL_PORT: ' + (process.env.EMAIL_PORT || 'MANCANTE (userà default 587)') + '</p>');
     }
 });
 
