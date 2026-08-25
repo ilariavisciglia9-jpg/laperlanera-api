@@ -441,6 +441,7 @@ app.get('/api/debug-env', (req, res) => {
         k.includes('RESEND') || k.includes('EMAIL') || k.includes('ADMIN') || k.includes('STRIPE')
     );
     res.json({
+        timestamp_richiesta: new Date().toISOString(),
         variabili_trovate: relevantKeys,
         RESEND_API_KEY_esiste: 'RESEND_API_KEY' in process.env,
         RESEND_API_KEY_lunghezza: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0,
@@ -538,4 +539,3 @@ process.on('SIGINT', () => {
     console.log('\n👋 Chiusura server...');
     process.exit(0);
 });
-// force redeploy variabili
