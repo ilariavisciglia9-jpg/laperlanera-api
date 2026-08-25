@@ -436,6 +436,18 @@ app.get('/api/test-email', async (req, res) => {
     }
 });
 
+app.get('/api/debug-env', (req, res) => {
+    const relevantKeys = Object.keys(process.env).filter(k =>
+        k.includes('RESEND') || k.includes('EMAIL') || k.includes('ADMIN') || k.includes('STRIPE')
+    );
+    res.json({
+        variabili_trovate: relevantKeys,
+        RESEND_API_KEY_esiste: 'RESEND_API_KEY' in process.env,
+        RESEND_API_KEY_lunghezza: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0,
+        RESEND_API_KEY_primi_caratteri: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.substring(0, 5) : 'N/D'
+    });
+});
+
 app.get('/api/status', (req, res) => {
     res.json({
         status: 'online',
@@ -474,6 +486,7 @@ app.get('/', (req, res) => {
                 <div class="endpoint"><strong>POST /api/confirm-booking</strong><br>Conferma la prenotazione e invia le email</div>
                 <div class="endpoint"><strong>POST /api/webhook</strong><br>Ricevi conferme pagamento da Stripe</div>
                 <div class="endpoint"><strong>GET /api/test-email</strong><br>Test diretto invio email (Resend)</div>
+                <div class="endpoint"><strong>GET /api/debug-env</strong><br>Debug variabili ambiente</div>
                 <div class="endpoint"><strong>GET /api/status</strong><br>Verifica lo stato del server</div>
                 <h2>📊 Info:</h2>
                 <ul>
@@ -511,6 +524,7 @@ app.listen(PORT, () => {
     console.log('   POST /api/confirm-booking - Conferma prenotazione e invia email');
     console.log('   POST /api/webhook - Webhook Stripe');
     console.log('   GET  /api/test-email - Test diretto invio email (Resend)');
+    console.log('   GET  /api/debug-env - Debug variabili ambiente');
     console.log('   GET  /api/status - Stato del sistema');
     console.log('');
     console.log('⏰ Auto-sync ogni 5 minuti');
