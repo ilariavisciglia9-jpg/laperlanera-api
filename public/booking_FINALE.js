@@ -52,10 +52,15 @@ const monthNames = [
 
 const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
 
+// ⚠️⚠️⚠️ ATTENZIONE — MODALITÀ TEST ATTIVA ⚠️⚠️⚠️
+// I valori "highSeason.price" (sotto) e "cleaningFee" (dentro calcolaPrezzi)
+// sono stati abbassati temporaneamente per fare test di prenotazione a 1€.
+// PRIMA DI METTERE IL SITO LIVE PER I CLIENTI VERI, CERCA "RIPRISTINARE"
+// in questo file (Ctrl+F) e rimetti i valori originali indicati.
 const seasonalPrices = {
     weekend: { price: 80 },
     highSeason: {
-        price: 120,
+        price: 1, // RIPRISTINARE: era 120 (rimesso a 1 solo per test 2-3 settembre 2026)
         periods: [
             { start: '06-15', end: '09-15' },
             { start: '12-20', end: '01-06' }
@@ -132,7 +137,7 @@ function calcolaPrezzi() {
 
     const nights = Math.ceil((selectedCheckOut - selectedCheckIn) / (1000 * 60 * 60 * 24));
     const subtotal = calculateTotalPrice(selectedCheckIn, selectedCheckOut);
-    const cleaningFee = 20;
+    const cleaningFee = 0; // RIPRISTINARE: era 20 (rimesso a 30 solo per test)
 
     const adults = parseInt(document.getElementById('adults') ? document.getElementById('adults').value : 2) || 2;
     const children = parseInt(document.getElementById('children') ? document.getElementById('children').value : 0) || 0;
