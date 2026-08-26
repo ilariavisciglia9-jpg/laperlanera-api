@@ -53,10 +53,10 @@ const monthNames = [
 const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
 
 // ⚠️⚠️⚠️ ATTENZIONE — MODALITÀ TEST ATTIVA ⚠️⚠️⚠️
-// I valori "highSeason.price" (sotto) e "cleaningFee" (dentro calcolaPrezzi)
-// sono stati abbassati temporaneamente per fare test di prenotazione a 1€.
+// I valori sotto ("highSeason.price", "cleaningFee" e "tax" dentro calcolaPrezzi)
+// sono stati modificati temporaneamente per far pagare 1€ TOTALE nei test.
 // PRIMA DI METTERE IL SITO LIVE PER I CLIENTI VERI, CERCA "RIPRISTINARE"
-// in questo file (Ctrl+F) e rimetti i valori originali indicati.
+// in questo file (Ctrl+F) e rimetti i valori originali indicati accanto.
 const seasonalPrices = {
     weekend: { price: 80 },
     highSeason: {
@@ -137,13 +137,13 @@ function calcolaPrezzi() {
 
     const nights = Math.ceil((selectedCheckOut - selectedCheckIn) / (1000 * 60 * 60 * 24));
     const subtotal = calculateTotalPrice(selectedCheckIn, selectedCheckOut);
-    const cleaningFee = 0; // RIPRISTINARE: era 20 (rimesso a 30 solo per test)
+    const cleaningFee = 0; // RIPRISTINARE: era 20 (azzerato solo per test — totale deve fare 1€)
 
     const adults = parseInt(document.getElementById('adults') ? document.getElementById('adults').value : 2) || 2;
     const children = parseInt(document.getElementById('children') ? document.getElementById('children').value : 0) || 0;
     const totalPersone = adults + children;
 
-    const tax = totalPersone * 3.5 * nights;
+    const tax = 0; // RIPRISTINARE: era totalPersone * 3.5 * nights (azzerato solo per test — totale deve fare 1€)
 
     const extraGuests = Math.max(0, adults - 2);
     const extraGuestFee = extraGuests * 10 * nights;
