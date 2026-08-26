@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 app.use(cors());
@@ -252,11 +253,17 @@ app.post('/api/confirm-booking', async (req, res) => {
 
         console.log('📨 Nuova richiesta conferma prenotazione:', bookingId, '-', bookingData.email);
 
-        res.json({ success: true, bookingId });
+        // ⚠️ TEMPORANEO PER DIAGNOSI: aspettiamo l'invio email prima di rispondere,
+        // così vediamo l'esito diretto nel popup del sito invece di cercare nei log.
+        let emailStatus = 'non tentato';
+        try {
+            await sendBookingEmails(bookingData, bookingId);
+            emailStatus = 'INVIATE CON SUCCESSO';
+        } catch (emailErr) {
+            emailStatus = 'ERRORE: ' + emailErr.message;
+        }
 
-        sendBookingEmails(bookingData, bookingId)
-            .then(() => console.log('✅ Email di conferma prenotazione inviate:', bookingId))
-            .catch((emailErr) => console.error('❌ Errore invio email conferma:', emailErr.message));
+        res.json({ success: true, bookingId, emailStatus });
 
     } catch (error) {
         console.error('❌ Errore in /api/confirm-booking:', error.message);
