@@ -7,8 +7,7 @@ let selectedCheckOut = null;
 
 let bookedDates = [];
 
-const API_URL = 'https://www.laperlanera.eu';
-
+const API_URL = 'https://laperlanera-api-production.up.railway.app';
 let stripe = null;
 let elements = null;
 let paymentElement = null;
