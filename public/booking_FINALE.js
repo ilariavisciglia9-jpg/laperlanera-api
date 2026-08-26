@@ -5,22 +5,14 @@ let currentDate = new Date();
 let selectedCheckIn = null;
 let selectedCheckOut = null;
 
-// Date prenotate (sincronizzate da Airbnb tramite server Render)
 let bookedDates = [];
 
-// URL del server API su Render
 const API_URL = 'https://laperlanera-api-production.up.railway.app';
 
-// ===========================
-// STRIPE VARIABLES
-// ===========================
 let stripe = null;
 let elements = null;
 let paymentElement = null;
 
-// ===========================
-// STRIPE INITIALIZATION
-// ===========================
 async function initializeStripe() {
     try {
         console.log('🔄 Inizializzazione Stripe...');
@@ -31,7 +23,6 @@ async function initializeStripe() {
     }
 }
 
-// Sync with Airbnb on page load
 async function syncWithAirbnb() {
     try {
         console.log('🔄 Sincronizzazione calendario Airbnb...');
@@ -61,13 +52,10 @@ const monthNames = [
 
 const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
 
-// ===========================
-// SEASONAL PRICING
-// ===========================
 const seasonalPrices = {
     weekend: { price: 80 },
     highSeason: {
-        price: 1, // ⚠️ TEST: era 120 — 2-3 settembre ricade qui (periodo 15/06-15/09)
+        price: 120,
         periods: [
             { start: '06-15', end: '09-15' },
             { start: '12-20', end: '01-06' }
@@ -80,7 +68,7 @@ const seasonalPrices = {
         ]
     },
     lowSeason: {
-        price: 75, // ripristinato (era stato messo a 1 per errore in precedenza)
+        price: 75,
         periods: [
             { start: '03-01', end: '06-14' },
             { start: '09-16', end: '12-19' }
@@ -139,24 +127,19 @@ function getAveragePricePerNight(checkInDate, checkOutDate) {
     return Math.round(totalPrice / nights);
 }
 
-// ===========================
-// CALCOLO PREZZI CENTRALIZZATO
-// ===========================
 function calcolaPrezzi() {
     if (!selectedCheckIn || !selectedCheckOut) return null;
 
     const nights = Math.ceil((selectedCheckOut - selectedCheckIn) / (1000 * 60 * 60 * 24));
     const subtotal = calculateTotalPrice(selectedCheckIn, selectedCheckOut);
-    const cleaningFee = 0; // ⚠️ TEST: era 20
+    const cleaningFee = 20;
 
     const adults = parseInt(document.getElementById('adults') ? document.getElementById('adults').value : 2) || 2;
     const children = parseInt(document.getElementById('children') ? document.getElementById('children').value : 0) || 0;
     const totalPersone = adults + children;
 
-    // Tassa di soggiorno: €3.50 a persona a notte
-    const tax = totalPersone * 0 * nights; // ripristinato (era stato messo a 1 per errore in precedenza)
+    const tax = totalPersone * 3.5 * nights;
 
-    // Supplemento ospiti: €10 a notte per ogni adulto oltre i 2
     const extraGuests = Math.max(0, adults - 2);
     const extraGuestFee = extraGuests * 10 * nights;
 
@@ -243,7 +226,6 @@ function selectDate(date) {
     renderCalendar();
     updateBookingSummary();
 
-    // Se le date sono complete e il metodo attivo è "Carta di Credito", mostra il form Stripe
     if (selectedCheckIn && selectedCheckOut) {
         const paymentInput = document.querySelector('input[name="payment"]:checked');
         const currentMethod = paymentInput ? paymentInput.value : 'card';
@@ -253,9 +235,6 @@ function selectDate(date) {
     }
 }
 
-// ===========================
-// AGGIORNA RIEPILOGO PRENOTAZIONE
-// ===========================
 function updateBookingSummary() {
     if (!selectedCheckIn || !selectedCheckOut) {
         document.getElementById('summaryCheckIn').textContent = 'Seleziona date';
@@ -281,7 +260,6 @@ function updateBookingSummary() {
     document.getElementById('priceTax').textContent = `€${p.tax.toFixed(2)}`;
     document.getElementById('priceTotal').textContent = '€' + p.total.toFixed(2);
 
-    // Mostra/nascondi riga supplemento ospiti
     let extraRow = document.getElementById('extraGuestRow');
     if (p.extraGuests > 0) {
         if (!extraRow) {
@@ -332,9 +310,6 @@ function nextMonth() {
     renderCalendar();
 }
 
-// ===========================
-// PAYMENT METHOD SELECTION
-// ===========================
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.payment-method').forEach(method => {
         method.addEventListener('click', function() {
@@ -346,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const value = this.querySelector('input[type="radio"]').value;
             console.log('💳 Metodo di pagamento selezionato:', value);
 
-            // Se scelgono "Carta di Credito", mostra subito il form Stripe
             if (value === 'card') {
                 avviaPagamentoCarta();
             }
@@ -354,11 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// ===========================
-// AVVIA PAGAMENTO CARTA (crea Payment Intent + monta form Stripe)
-// ===========================
 async function avviaPagamentoCarta() {
-    // Se il form è già montato, non ricrearlo
     if (elements) return;
 
     if (!selectedCheckIn || !selectedCheckOut) {
@@ -421,9 +391,6 @@ async function avviaPagamentoCarta() {
     }
 }
 
-// ===========================
-// UPDATE SUMMARY WHEN GUESTS CHANGE
-// ===========================
 function updateGuestsSummary() {
     const adults = document.getElementById('adults') ? document.getElementById('adults').value : '2';
     const children = document.getElementById('children') ? document.getElementById('children').value : '0';
@@ -438,7 +405,6 @@ function updateGuestsSummary() {
         summaryGuestsEl.textContent = guestText;
     }
 
-    // Aggiorna prezzi quando cambiano gli ospiti
     updateBookingSummary();
 }
 
@@ -454,9 +420,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ===========================
-// FORM SUBMISSION CON STRIPE
-// ===========================
 const completeBookingForm = document.getElementById('completeBookingForm');
 
 if (completeBookingForm) {
@@ -497,10 +460,6 @@ if (completeBookingForm) {
         };
 
   try {
-    // ═══════════════════════════════════════════
-    // BONIFICO o PAYPAL: nessun collegamento a Stripe.
-    // Si registra subito la prenotazione con il metodo scelto.
-    // ═══════════════════════════════════════════
     if (paymentMethod === 'transfer' || paymentMethod === 'paypal') {
         console.log('📨 Invio prenotazione con pagamento: ' + paymentMethod);
 
@@ -513,6 +472,7 @@ if (completeBookingForm) {
         const confirmData = await bookingResponse.json();
 
         if (confirmData.success) {
+            window.lastEmailStatus = confirmData.emailStatus || 'N/D';
             showBookingSuccess(confirmData.bookingId, paymentMethod);
         } else {
             alert('Si è verificato un errore nella prenotazione. Riprova o contattaci.');
@@ -520,11 +480,6 @@ if (completeBookingForm) {
         return;
     }
 
-    // ═══════════════════════════════════════════
-    // CARTA DI CREDITO: flusso Stripe invariato
-    // ═══════════════════════════════════════════
-
-    // Se il Payment Element è già montato, conferma pagamento
     if (elements) {
         console.log('🔄 Conferma pagamento...');
         const { error, paymentIntent } = await stripe.confirmPayment({
@@ -546,8 +501,6 @@ if (completeBookingForm) {
         return;
     }
 
-    // Prima volta (fallback, es. se "Carta di Credito" era già selezionata di default
-    // e non è mai stata cliccata esplicitamente): crea Payment Intent e monta il form
     await avviaPagamentoCarta();
     return;
 
@@ -556,16 +509,13 @@ if (completeBookingForm) {
         alert('Si è verificato un errore: ' + error.message + '\n\nRiprova o contattaci.');
     }
 
-    });  // fine addEventListener submit
-}  // fine if (completeBookingForm)
+    });
+}
 
-// ===========================
-// MESSAGGIO DI CONFERMA (bonifico / paypal)
-// ===========================
 function showBookingSuccess(bookingId, paymentMethod) {
     const box = document.getElementById('booking-success-message');
     if (!box) {
-        alert('✅ Prenotazione inviata! Codice: ' + bookingId);
+        alert('✅ Prenotazione inviata! Codice: ' + bookingId + '\nStato email: ' + (window.lastEmailStatus || 'N/D'));
         return;
     }
 
@@ -576,7 +526,7 @@ function showBookingSuccess(bookingId, paymentMethod) {
         extra = 'Invia il pagamento a mingrone.danny@gmail.com e mandaci lo screenshot della ricevuta per confermare definitivamente la prenotazione.';
     }
 
-    box.innerHTML = '✅ <strong>Prenotazione inviata!</strong><br>Codice prenotazione: <strong>' + bookingId + '</strong><br>' + extra;
+    box.innerHTML = '✅ <strong>Prenotazione inviata!</strong><br>Codice prenotazione: <strong>' + bookingId + '</strong><br>📧 Stato email: <strong>' + (window.lastEmailStatus || 'N/D') + '</strong><br>' + extra;
     box.style.display = 'block';
     box.scrollIntoView({ behavior: 'smooth' });
 
@@ -597,8 +547,8 @@ async function completaPrenotazione(bookingData, paymentIntent) {
         const confirmData = await bookingResponse.json();
 
         if (confirmData.success) {
-            alert('✅ PRENOTAZIONE CONFERMATA!\n\nCodice: ' + confirmData.bookingId + '\n\nControlla la tua email per i dettagli.');
-            window.location.reload();
+            window.lastEmailStatus = confirmData.emailStatus || 'N/D';
+            alert('✅ PRENOTAZIONE CONFERMATA!\n\nCodice: ' + confirmData.bookingId + '\n\n📧 Stato email: ' + window.lastEmailStatus);
         } else {
             alert('Pagamento completato ma errore nella conferma. Contattaci con ID: ' + paymentIntent.id);
         }
@@ -607,9 +557,6 @@ async function completaPrenotazione(bookingData, paymentIntent) {
     }
 }
 
-// ===========================
-// LOAD SAVED BOOKING DATA
-// ===========================
 window.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Inizializzazione pagina prenotazioni...');
     
