@@ -51,62 +51,42 @@ const monthNames = [
 
 const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
 
-const seasonalPrices = {
-    weekend: { price: 80 },
-    highSeason: {
-        price: 120,
-        periods: [
-            { start: '06-15', end: '09-15' },
-            { start: '12-20', end: '01-06' }
-        ]
-    },
-    midSeason: {
-        price: 55,
-        periods: [
-            { start: '01-07', end: '02-28' }
-        ]
-    },
-    lowSeason: {
-        price: 75,
-        periods: [
-            { start: '03-01', end: '06-14' },
-            { start: '09-16', end: '12-19' }
-        ]
-    }
-};
-
+// ===========================
+// PREZZI PER MESE (aggiornati)
+// ===========================
 function getPriceForDate(date) {
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateKey = `${month}-${day}`;
-    const dayOfWeek = date.getDay();
-    
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-        return seasonalPrices.weekend.price;
-    }
-    for (const period of seasonalPrices.highSeason.periods) {
-        if (isDateInPeriod(dateKey, period.start, period.end, date.getFullYear())) {
-            return seasonalPrices.highSeason.price;
-        }
-    }
-    for (const period of seasonalPrices.midSeason.periods) {
-        if (isDateInPeriod(dateKey, period.start, period.end, date.getFullYear())) {
-            return seasonalPrices.midSeason.price;
-        }
-    }
-    for (const period of seasonalPrices.lowSeason.periods) {
-        if (isDateInPeriod(dateKey, period.start, period.end, date.getFullYear())) {
-            return seasonalPrices.lowSeason.price;
-        }
-    }
-    return seasonalPrices.lowSeason.price;
-}
+    const month = date.getMonth() + 1; // 1-12
+    const day = date.getDate();
+    const dayOfWeek = date.getDay(); // 0=Dom,1=Lun,2=Mar,3=Mer,4=Gio,5=Ven,6=Sab
 
-function isDateInPeriod(dateKey, periodStart, periodEnd, year) {
-    if (periodStart > periodEnd) {
-        return dateKey >= periodStart || dateKey <= periodEnd;
-    } else {
-        return dateKey >= periodStart && dateKey <= periodEnd;
+    // Periodo speciale: 24 dicembre - 6 gennaio => 100€ (sovrascrive tutto il resto)
+    const isCapodanno = (month === 12 && day >= 24) || (month === 1 && day <= 6);
+    if (isCapodanno) return 100;
+
+    switch (month) {
+        case 1:  // Gennaio
+        case 2:  // Febbraio
+        case 3:  // Marzo
+            return 83;
+        case 4:  // Aprile
+            return (dayOfWeek === 0 || dayOfWeek === 6) ? 95 : 90;
+        case 5:  // Maggio
+            return (dayOfWeek === 0 || dayOfWeek === 6) ? 90 : 85;
+        case 6:  // Giugno
+            return 95;
+        case 7:  // Luglio
+            return 85;
+        case 8:  // Agosto
+            return (day === 15) ? 95 : 90; // 15 agosto = Ferragosto
+        case 9:  // Settembre
+            return (dayOfWeek === 0 || dayOfWeek === 6) ? 87 : 85;
+        case 10: // Ottobre — venerdì, sabato, domenica a prezzo weekend
+            return (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) ? 100 : 90;
+        case 11: // Novembre
+        case 12: // Dicembre (il resto, fuori dal periodo 24/12-6/1 già gestito sopra)
+            return 83;
+        default:
+            return 85;
     }
 }
 
@@ -131,7 +111,7 @@ function calcolaPrezzi() {
 
     const nights = Math.ceil((selectedCheckOut - selectedCheckIn) / (1000 * 60 * 60 * 24));
     const subtotal = calculateTotalPrice(selectedCheckIn, selectedCheckOut);
-    const cleaningFee = 30;
+    const cleaningFee = 20;
 
     const adults = parseInt(document.getElementById('adults') ? document.getElementById('adults').value : 2) || 2;
     const children = parseInt(document.getElementById('children') ? document.getElementById('children').value : 0) || 0;
