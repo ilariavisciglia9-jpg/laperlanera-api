@@ -460,6 +460,7 @@
                             </label>
                         </div>
 
+                        <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;">
                         <button type="submit" class="btn-primary btn-large" style="width: 100%;">
                             Invia Messaggio
                         </button>
@@ -663,32 +664,63 @@
             }
         }
 
-        // Contact Form
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                name: document.getElementById('contactName').value,
-                email: document.getElementById('contactEmail').value,
-                phone: document.getElementById('contactPhone').value,
-                subject: document.getElementById('contactSubject').value,
-                dates: document.getElementById('contactDates').value,
-                message: document.getElementById('contactMessage').value,
-                timestamp: new Date().toISOString()
-            };
-            
-            // In production, send to backend API
-            console.log('Contact Form Data:', formData);
-            
-            alert(`✅ Messaggio inviato con successo!
+        // Contact Form → le richieste arrivano a info@laperlanera.eu (servizio FormSubmit)
+        (function () {
+            var form = document.getElementById('contactForm');
+            var btn = form.querySelector('button[type="submit"]');
+            var esito = document.createElement('p');
+            esito.id = 'contactEsito';
+            esito.setAttribute('role', 'status');
+            esito.style.cssText = 'margin-top:1rem;font-weight:600;text-align:center;';
+            btn.insertAdjacentElement('afterend', esito);
 
-Grazie ${formData.name}, abbiamo ricevuto la tua richiesta.
-Ti risponderemo entro 24 ore all'indirizzo ${formData.email}.
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var oggetto = document.getElementById('contactSubject');
+                var dati = {
+                    Nome: document.getElementById('contactName').value.trim(),
+                    Email: document.getElementById('contactEmail').value.trim(),
+                    Telefono: document.getElementById('contactPhone').value.trim() || '-',
+                    Oggetto: oggetto.options[oggetto.selectedIndex].text,
+                    'Date di interesse': document.getElementById('contactDates').value.trim() || '-',
+                    Messaggio: document.getElementById('contactMessage').value.trim(),
+                    _subject: 'Nuovo messaggio dal sito La Perla Nera - ' + oggetto.options[oggetto.selectedIndex].text,
+                    _replyto: document.getElementById('contactEmail').value.trim(),
+                    _template: 'table',
+                    _captcha: 'false',
+                    _honey: (form.querySelector('[name="_honey"]') || {}).value || ''
+                };
 
-A presto!`);
-            
-            this.reset();
-        });
+                btn.disabled = true;
+                btn.textContent = 'Invio in corso…';
+                esito.style.color = 'var(--text-gray)';
+                esito.textContent = '';
+
+                fetch('https://formsubmit.co/ajax/info@laperlanera.eu', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(dati)
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                    if (r.success === 'true' || r.success === true) {
+                        esito.style.color = '#2e7d32';
+                        esito.textContent = '✅ Grazie ' + dati.Nome + ', messaggio inviato! Ti risponderemo entro 24 ore a ' + dati.Email + '.';
+                        form.reset();
+                    } else {
+                        throw new Error(r.message || 'invio non riuscito');
+                    }
+                })
+                .catch(function () {
+                    esito.style.color = '#c62828';
+                    esito.innerHTML = 'Invio non riuscito. Riprova oppure scrivici a <a href="mailto:info@laperlanera.eu" style="color:inherit">info@laperlanera.eu</a>.';
+                })
+                .then(function () {
+                    btn.disabled = false;
+                    btn.textContent = 'Invia Messaggio';
+                });
+            });
+        })();
     </script>
 </body>
 </html>
