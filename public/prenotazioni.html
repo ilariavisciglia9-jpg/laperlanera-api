@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prenota Ora - La Perla Nera | Prenotazione Diretta Online</title>
     <meta name="description" content="Prenota direttamente la tua casa vacanza a Roma. Disponibilità in tempo reale, calendario sincronizzato con Airbnb e Booking.com. Miglior prezzo garantito!">
+    <link rel="icon" type="image/png" href="laperla_nera_logo-vettoriale.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -496,7 +497,8 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <h1>La Perla Nera</h1>
+                <img src="laperla_nera_logo-vettoriale.png" alt="La Perla Nera Logo" style="height: 70px; width: auto; display: block; margin: 0 auto 5px auto;">
+                <h1>LA PERLA NERA</h1>
                 <p class="tagline">La Tua Oasi nella Città Eterna</p>
             </div>
             <ul class="nav-menu" id="navMenu">
@@ -757,10 +759,10 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <h3>Casa Vacanza Roma</h3>
+                    <h3>La Perla Nera</h3>
                     <p>Il tuo appartamento ideale nel cuore di Roma, vicino alla Metro C e a soli 35 minuti dal Colosseo.</p>
                     <div class="social-links">
-                        <a href="info@laperlanera.eu" aria-label="Email">✉️</a>
+                        <a href="mailto:info@laperlanera.eu" aria-label="Email">✉️</a>
                     </div>
                 </div>
                 
@@ -789,7 +791,7 @@
                     <ul class="contact-info">
                         <li>📍 Roma, Italia</li>
                         <li>📞 +39 3806558872</li>
-                        <li>✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="127b7c747d527e736277607e737c7760733c7767">[email&#160;protected]</a></li>
+                        <li>✉️ <a href="mailto:info@laperlanera.eu">info@laperlanera.eu</a></li>
                         <li>🕐 Check-in: 24/7</li>
                     </ul>
                 </div>
@@ -802,6 +804,25 @@
         </div>
     </footer>
 
+    <script>
+    // Menu hamburger mobile (stessa logica di script.js, che in questa pagina non è incluso)
+    (function () {
+        var hamburger = document.getElementById('hamburger');
+        var navMenu = document.getElementById('navMenu');
+        if (!hamburger || !navMenu || hamburger.dataset.menuPronto) return;
+        hamburger.dataset.menuPronto = '1';
+        hamburger.addEventListener('click', function () {
+            navMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+        navMenu.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                navMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+    })();
+    </script>
 <script src="https://js.stripe.com/v3/"></script>
     <script src="booking_FINALE.js?v=20260806"></script>
     <script>
