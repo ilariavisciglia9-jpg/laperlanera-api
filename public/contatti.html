@@ -674,6 +674,25 @@
             esito.style.cssText = 'margin-top:1rem;font-weight:600;text-align:center;';
             btn.insertAdjacentElement('afterend', esito);
 
+            function inviaClassico(dati) {
+                var f = document.createElement('form');
+                f.method = 'POST';
+                f.action = 'https://formsubmit.co/info@laperlanera.eu';
+                f.style.display = 'none';
+                dati._next = location.href.split('#')[0].split('?')[0] + '?inviato=1#contactForm';
+                Object.keys(dati).forEach(function (k) {
+                    var i = document.createElement('input');
+                    i.type = 'hidden'; i.name = k; i.value = dati[k];
+                    f.appendChild(i);
+                });
+                document.body.appendChild(f);
+                f.submit();
+            }
+            if (/[?&]inviato=1/.test(location.search)) {
+                esito.style.color = '#2e7d32';
+                esito.textContent = '✅ Messaggio inviato! Ti risponderemo entro 24 ore.';
+            }
+
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 var oggetto = document.getElementById('contactSubject');
@@ -707,13 +726,17 @@
                         esito.style.color = '#2e7d32';
                         esito.textContent = '✅ Grazie ' + dati.Nome + ', messaggio inviato! Ti risponderemo entro 24 ore a ' + dati.Email + '.';
                         form.reset();
+                    } else if (/activat/i.test(r.message || '')) {
+                        // Primo utilizzo: FormSubmit chiede di attivare il form via email
+                        esito.style.color = '#c62828';
+                        esito.textContent = 'Form non ancora attivato: apri la casella info@laperlanera.eu (anche lo spam) e clicca "Activate Form" nell\'email di FormSubmit, poi reinvia.';
                     } else {
                         throw new Error(r.message || 'invio non riuscito');
                     }
                 })
                 .catch(function () {
-                    esito.style.color = '#c62828';
-                    esito.innerHTML = 'Invio non riuscito. Riprova oppure scrivici a <a href="mailto:info@laperlanera.eu" style="color:inherit">info@laperlanera.eu</a>.';
+                    // Riserva: invio classico (funziona anche se il browser o il server bloccano l'invio "in pagina")
+                    inviaClassico(dati);
                 })
                 .then(function () {
                     btn.disabled = false;
